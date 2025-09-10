@@ -62,6 +62,9 @@ public class ChessPiece {
         if(type == ChessPiece.PieceType.KNIGHT) {
             return knightMoves(board,myPosition);
         }
+        if(type == PieceType.PAWN) {
+            return pawnMoves(board,myPosition);
+        }
         return new HashSet<ChessMove>();
     }
 
@@ -150,6 +153,39 @@ public class ChessPiece {
                     else if(board.getPiece(endPosition).getTeamColor() != pieceColor) {
                         moves.add(new ChessMove(myPosition,endPosition,null));
                     }
+                }
+            }
+        }
+        return moves;
+    }
+
+    private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition) {
+        HashSet<ChessMove> moves = new HashSet<>();
+        int row = myPosition.getRow();
+        int col = myPosition.getCol();
+        if(pieceColor == ChessGame.TeamColor.WHITE) {
+            int endRow = row + 1;
+            int endCol = col;
+            if(validSquare(endRow,endCol)) {
+                ChessPosition endPosition = new ChessPosition(endRow,endCol);
+                if(board.getPiece(endPosition) == null) {
+                    moves.add(new ChessMove(myPosition,endPosition,null));
+                }
+            }
+            endRow = row + 1;
+            endCol = col + 1;
+            if(validSquare(endRow,endCol)) {
+                ChessPosition endPosition = new ChessPosition(endRow,endCol);
+                if(board.getPiece(endPosition) != null && board.getPiece(endPosition).getTeamColor() != pieceColor) {
+                    moves.add(new ChessMove(myPosition,endPosition,null));
+                }
+            }
+            endRow = row + 1;
+            endCol = col - 1;
+            if(validSquare(endRow,endCol)) {
+                ChessPosition endPosition = new ChessPosition(endRow,endCol);
+                if(board.getPiece(endPosition) != null && board.getPiece(endPosition).getTeamColor() != pieceColor) {
+                    moves.add(new ChessMove(myPosition,endPosition,null));
                 }
             }
         }
