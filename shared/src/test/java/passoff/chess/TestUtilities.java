@@ -91,7 +91,7 @@ public class TestUtilities {
     }
 
     private static int positionToInt(ChessPosition position) {
-        return 10 * position.getRow() + position.getColumn();
+        return 10 * position.getRow() + position.getCol();
     }
 
     private static int moveToInt(ChessMove move) {
