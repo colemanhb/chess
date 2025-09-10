@@ -59,6 +59,9 @@ public class ChessPiece {
         if(type == ChessPiece.PieceType.KING) {
             return kingMoves(board,myPosition);
         }
+        if(type == ChessPiece.PieceType.KNIGHT) {
+            return knightMoves(board,myPosition);
+        }
         return new HashSet<ChessMove>();
     }
 
@@ -86,7 +89,7 @@ public class ChessPiece {
                     row += 1;
                     col += 1;
                 }
-                if(row * col == 0 || row == 9 || col == 9) {
+                if(!validSquare(row,col)) {
                     break;
                 }
                 ChessPosition endPosition = new ChessPosition(row,col);
@@ -116,7 +119,7 @@ public class ChessPiece {
                 }
                 int endRow = row + i;
                 int endCol = col + j;
-                if(endRow >= 1 && endRow <= 8 && endCol >= 1 && endCol <= 8) {
+                if(validSquare(endRow,endCol)) {
                     ChessPosition endPosition = new ChessPosition(endRow,endCol);
                     if(board.getPiece(endPosition) == null) {
                         moves.add(new ChessMove(myPosition,endPosition,null));
@@ -128,5 +131,32 @@ public class ChessPiece {
             }
         }
         return moves;
+    }
+    private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition myPosition) {
+        HashSet<ChessMove> moves = new HashSet<ChessMove>();
+        int row = myPosition.getRow();
+        int col = myPosition.getCol();
+        for(int i = -2; i <= 2; i ++) {
+            for(int j = -2; j <= 2; j ++) {
+                if(i * j != -2 && i * j != 2)
+                    continue;
+                int endRow = row + i;
+                int endCol = col + j;
+                if(validSquare(endRow,endCol)) {
+                    ChessPosition endPosition = new ChessPosition(endRow,endCol);
+                    if(board.getPiece(endPosition) == null) {
+                        moves.add(new ChessMove(myPosition,endPosition,null));
+                    }
+                    else if(board.getPiece(endPosition).getTeamColor() != pieceColor) {
+                        moves.add(new ChessMove(myPosition,endPosition,null));
+                    }
+                }
+            }
+        }
+        return moves;
+    }
+
+    private boolean validSquare(int row, int col) {
+        return row >= 1 && row <= 8 && col >= 1 && col <= 8;
     }
 }
