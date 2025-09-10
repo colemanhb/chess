@@ -45,6 +45,10 @@ public class ChessMove {
         return promotionPiece;
     }
 
+    public void setPromotionPiece(ChessPiece.PieceType newType) {
+        promotionPiece = newType;
+    }
+
     @Override
     public String toString() {
         return "ChessMove{" +
