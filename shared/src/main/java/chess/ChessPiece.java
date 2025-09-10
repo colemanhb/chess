@@ -56,6 +56,9 @@ public class ChessPiece {
         if(type == ChessPiece.PieceType.BISHOP) {
             return bishopMoves(board, myPosition);
         }
+        if(type == ChessPiece.PieceType.KING) {
+            return kingMoves(board,myPosition);
+        }
         return new HashSet<ChessMove>();
     }
 
@@ -100,6 +103,30 @@ public class ChessPiece {
             col = myPosition.getCol();
         }
 
+        return moves;
+    }
+    private Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition) {
+        HashSet<ChessMove> moves = new HashSet();
+        var row = myPosition.getRow();
+        var col = myPosition.getCol();
+        for(int i = -1; i <= 1; i ++) {
+            for(int j = -1; j <= 1; j ++) {
+                if(i == 0 && j == 0) {
+                    continue;
+                }
+                int endRow = row + i;
+                int endCol = col + j;
+                if(endRow >= 1 && endRow <= 8 && endCol >= 1 && endCol <= 8) {
+                    ChessPosition endPosition = new ChessPosition(endRow,endCol);
+                    if(board.getPiece(endPosition) == null) {
+                        moves.add(new ChessMove(myPosition,endPosition,null));
+                    }
+                    else if(board.getPiece(endPosition).getTeamColor() != pieceColor) {
+                        moves.add(new ChessMove(myPosition,endPosition,null));
+                    }
+                }
+            }
+        }
         return moves;
     }
 }
