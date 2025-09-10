@@ -87,11 +87,14 @@ public class ChessPiece {
                     break;
                 }
                 ChessPosition endPosition = new ChessPosition(row,col);
-                moves.add(new ChessMove(myPosition,endPosition,null));
-                //break if enemy piece found
                 if(board.getPiece(endPosition) != null) {
+                    if(board.getPiece(endPosition).getTeamColor() != pieceColor) {
+                        moves.add(new ChessMove(myPosition,endPosition,null));
+                    }
                     break;
                 }
+                moves.add(new ChessMove(myPosition,endPosition,null));
+                //break if enemy piece found
             }
             row = myPosition.getRow();
             col = myPosition.getCol();
