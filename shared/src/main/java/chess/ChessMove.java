@@ -45,30 +45,25 @@ public class ChessMove {
         return promotionPiece;
     }
 
-    public void setPromotionPiece(ChessPiece.PieceType newType) {
-        promotionPiece = newType;
-    }
-
-    @Override
-    public String toString() {
-        return "ChessMove{" +
-                "startPosition=" + startPosition +
-                ", endPosition=" + endPosition +
-                ", promotionPiece=" + promotionPiece +
-                '}';
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ChessMove chessMove = (ChessMove) o;
-        return Objects.equals(startPosition, chessMove.startPosition) && Objects.equals(endPosition, chessMove.endPosition) && promotionPiece == chessMove.promotionPiece;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChessMove move = (ChessMove) o;
+        return (startPosition.equals(move.startPosition) && endPosition.equals(move.endPosition)
+                && promotionPiece == move.promotionPiece);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(startPosition, endPosition, promotionPiece);
+        var promotionCode = (promotionPiece == null ?
+                9 : promotionPiece.ordinal());
+        return (71 * startPosition.hashCode()) + endPosition.hashCode() + promotionCode;
+    }
+
+    @Override
+    public String toString() {
+        var p = (promotionPiece == null ? "" : ":" + promotionPiece);
+        return String.format("%s:%s%s", startPosition.toString(), endPosition.toString(), p);
     }
 }

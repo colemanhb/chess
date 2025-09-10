@@ -163,18 +163,22 @@ public class ChessPiece {
         HashSet<ChessMove> moves = new HashSet<>();
         int row = myPosition.getRow();
         int col = myPosition.getCol();
+        boolean blocked = true;
         if(pieceColor == ChessGame.TeamColor.WHITE) {
             ChessMove move = pawnHelper(board, myPosition,row + 1, col, false);
             if(move != null) {
+                blocked = false;
                 moves.add(move);
                 if(move.getPromotionPiece() == PieceType.QUEEN) {
                     addOptions(moves,move);
                 }
             }
             if(row == 2) {
-                move = pawnHelper(board, myPosition, row + 2, col, false);
-                if(move != null) {
-                    moves.add(move);
+                if(!blocked) {
+                    move = pawnHelper(board, myPosition, row + 2, col, false);
+                    if(move != null) {
+                        moves.add(move);
+                    }
                 }
             }
             move = pawnHelper(board, myPosition, row + 1, col + 1, true);
@@ -185,6 +189,38 @@ public class ChessPiece {
                 }
             }
             move = pawnHelper(board, myPosition, row + 1, col - 1, true);
+            if(move != null) {
+                moves.add(move);
+                if(move.getPromotionPiece() == PieceType.QUEEN) {
+                    addOptions(moves,move);
+                }
+            }
+        }
+        if(pieceColor == ChessGame.TeamColor.BLACK) {
+            ChessMove move = pawnHelper(board, myPosition,row - 1, col, false);
+            if(move != null) {
+                blocked = false;
+                moves.add(move);
+                if(move.getPromotionPiece() == PieceType.QUEEN) {
+                    addOptions(moves,move);
+                }
+            }
+            if(!blocked) {
+                if(row == 7) {
+                    move = pawnHelper(board, myPosition, row - 2, col, false);
+                    if(move != null) {
+                        moves.add(move);
+                    }
+                }
+            }
+            move = pawnHelper(board, myPosition, row - 1, col + 1, true);
+            if(move != null) {
+                moves.add(move);
+                if(move.getPromotionPiece() == PieceType.QUEEN) {
+                    addOptions(moves,move);
+                }
+            }
+            move = pawnHelper(board, myPosition, row - 1, col - 1, true);
             if(move != null) {
                 moves.add(move);
                 if(move.getPromotionPiece() == PieceType.QUEEN) {
