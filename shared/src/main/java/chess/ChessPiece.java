@@ -63,29 +63,40 @@ public class ChessPiece {
         HashSet<ChessMove> moves = new HashSet<ChessMove>();
         var row = myPosition.getRow();
         var col = myPosition.getCol();
-        //upper left
-        while(true) {
-            row -= 1;
-            col += 1;
-            if(row * col == 0 || row == 9 || col == 9) {
-                break;
-            }
-            ChessPosition endPosition = new ChessPosition(row,col);
-            moves.add(new ChessMove(myPosition,endPosition,null));
-            //break if enemy piece found
-            if(board.getPiece(endPosition) != null) {
-                break;
-            }
-        }
-        row = myPosition.getRow();
-        col = myPosition.getRow();
-        //upper right
-        row = myPosition.getRow();
-        col = myPosition.getRow();
-        //lower left
-        row = myPosition.getRow();
-        col = myPosition.getRow();
         //lower right
+        for(int i = 0; i < 4; i ++) {
+            while(true) {
+                if(i == 0)
+                {
+                    row -= 1;
+                    col += 1;
+                }
+                if(i == 1) {
+                    row -= 1;
+                    col -= 1;
+                }
+                if(i == 2) {
+                    row += 1;
+                    col -= 1;
+                }
+                if(i == 3) {
+                    row += 1;
+                    col += 1;
+                }
+                if(row * col == 0 || row == 9 || col == 9) {
+                    break;
+                }
+                ChessPosition endPosition = new ChessPosition(row,col);
+                moves.add(new ChessMove(myPosition,endPosition,null));
+                //break if enemy piece found
+                if(board.getPiece(endPosition) != null) {
+                    break;
+                }
+            }
+            row = myPosition.getRow();
+            col = myPosition.getCol();
+        }
+
         return moves;
     }
 }
