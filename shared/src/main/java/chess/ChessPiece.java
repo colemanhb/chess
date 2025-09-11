@@ -68,6 +68,9 @@ public class ChessPiece {
         if(type == PieceType.QUEEN) {
             return queenMoves(board,myPosition);
         }
+        if(type == PieceType.ROOK) {
+            return rookMoves(board,myPosition);
+        }
         return new HashSet<ChessMove>();
     }
 
@@ -284,7 +287,39 @@ public class ChessPiece {
                             break;
                         }
                     }
+                }
+                row = myPosition.getRow();
+                col = myPosition.getCol();
+            }
+        }
+        return moves;
+    }
 
+    private Collection<ChessMove> rookMoves(ChessBoard board, ChessPosition myPosition) {
+        var moves = new HashSet<ChessMove>();
+        int row = myPosition.getRow();
+        int col = myPosition.getCol();
+        for(int i = -1; i <= 1; i ++) {
+            for(int j = -1; j <= 1; j ++) {
+                if(i * j != 0 || i + j == 0) {
+                    continue;
+                }
+                while(validSquare(row + i, col + j)) {
+                    row += i;
+                    col += j;
+                    var endPosition = new ChessPosition(row,col);
+                    if(board.getPiece(endPosition) == null) {
+                        moves.add(new ChessMove(myPosition,endPosition,null));
+                    }
+                    else {
+                        if(board.getPiece(endPosition).getTeamColor() == pieceColor) {
+                            break;
+                        }
+                        else {
+                            moves.add(new ChessMove(myPosition,endPosition,null));
+                            break;
+                        }
+                    }
                 }
                 row = myPosition.getRow();
                 col = myPosition.getCol();
