@@ -78,7 +78,7 @@ public class ChessPiece {
     private Collection<ChessMove> bishopMoves(ChessBoard board, ChessPosition myPosition) {
         HashSet<ChessMove> moves = new HashSet<ChessMove>();
         var row = myPosition.getRow();
-        var col = myPosition.getCol();
+        var col = myPosition.getColumn();
         //lower right
         for(int i = 0; i < 4; i ++) {
             while(true) {
@@ -113,7 +113,7 @@ public class ChessPiece {
                 //break if enemy piece found
             }
             row = myPosition.getRow();
-            col = myPosition.getCol();
+            col = myPosition.getColumn();
         }
 
         return moves;
@@ -121,7 +121,7 @@ public class ChessPiece {
     private Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition) {
         HashSet<ChessMove> moves = new HashSet();
         var row = myPosition.getRow();
-        var col = myPosition.getCol();
+        var col = myPosition.getColumn();
         for(int i = -1; i <= 1; i ++) {
             for(int j = -1; j <= 1; j ++) {
                 if(i == 0 && j == 0) {
@@ -145,7 +145,7 @@ public class ChessPiece {
     private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition myPosition) {
         HashSet<ChessMove> moves = new HashSet<ChessMove>();
         int row = myPosition.getRow();
-        int col = myPosition.getCol();
+        int col = myPosition.getColumn();
         for(int i = -2; i <= 2; i ++) {
             for(int j = -2; j <= 2; j ++) {
                 if(i * j != -2 && i * j != 2)
@@ -169,7 +169,7 @@ public class ChessPiece {
     private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition) {
         HashSet<ChessMove> moves = new HashSet<>();
         int row = myPosition.getRow();
-        int col = myPosition.getCol();
+        int col = myPosition.getColumn();
         boolean blocked = true;
         if(pieceColor == ChessGame.TeamColor.WHITE) {
             ChessMove move = pawnHelper(board, myPosition,row + 1, col, false);
@@ -266,7 +266,7 @@ public class ChessPiece {
     private Collection<ChessMove> queenMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
         int row = myPosition.getRow();
-        int col = myPosition.getCol();
+        int col = myPosition.getColumn();
         for(int i = -1; i <= 1; i ++) {
             for(int j = -1; j <= 1; j ++) {
                 if(i == 0 && j == 0) {
@@ -290,7 +290,7 @@ public class ChessPiece {
                     }
                 }
                 row = myPosition.getRow();
-                col = myPosition.getCol();
+                col = myPosition.getColumn();
             }
         }
         return moves;
@@ -299,7 +299,7 @@ public class ChessPiece {
     private Collection<ChessMove> rookMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
         int row = myPosition.getRow();
-        int col = myPosition.getCol();
+        int col = myPosition.getColumn();
         for(int i = -1; i <= 1; i ++) {
             for(int j = -1; j <= 1; j ++) {
                 if(i * j != 0 || i + j == 0) {
@@ -323,7 +323,7 @@ public class ChessPiece {
                     }
                 }
                 row = myPosition.getRow();
-                col = myPosition.getCol();
+                col = myPosition.getColumn();
             }
         }
         return moves;
