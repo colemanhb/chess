@@ -69,14 +69,14 @@ public class ChessBoard {
 
     @Override
     public String toString() {
-        var result = "";
+        StringBuilder result = new StringBuilder();
         for(int i = 7; i >= 0; i --) {
             for(int j = 0; j < 8; j ++) {
-                result += "|" + board[i][j];
+                result.append("|").append(board[i][j]);
             }
-            result += "|";
+            result.append("|");
         }
-        return result;
+        return result.toString();
     }
 
     @Override
