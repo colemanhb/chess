@@ -2,6 +2,7 @@ package chess;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Stack;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -13,6 +14,7 @@ public class ChessGame {
 
     private TeamColor currentTeam;
     private ChessBoard board;
+    private Stack<ChessBoard> pastBoards = new Stack<>();
 
     public ChessGame() {
 
@@ -53,12 +55,18 @@ public class ChessGame {
         if(board.getPiece(startPosition) == null) {
             return null;
         }
-        Collection<ChessMove> moves;
-        if(isInCheck(board.getPiece(startPosition).getTeamColor())) {
-            moves = null;
-        }
-        else {
-            moves = board.getPiece(startPosition).pieceMoves(board,startPosition);
+        Collection<ChessMove> moves = board.getPiece(startPosition).pieceMoves(board,startPosition);
+        TeamColor color = board.getPiece(startPosition).getTeamColor();
+        if(isInCheck(color)) {
+            HashSet<ChessMove> forcedMoves = new HashSet<>();
+            for(var move : moves) {
+                board.movePiece(move);
+                if(!isInCheck(color)) {
+                    forcedMoves.add(move);
+                }
+                undoMove();
+            }
+            moves = forcedMoves;
         }
         return moves;
     }
@@ -82,6 +90,7 @@ public class ChessGame {
         if(!valid)
             throw new InvalidMoveException();
         else {
+            pastBoards.push(board.clone());
             board.movePiece(move);
         }
         switch(currentTeam) {
@@ -90,8 +99,9 @@ public class ChessGame {
         }
     }
     
-    public ChessBoard tryMove(ChessMove move) throws InvalidMoveException {
-        return null;
+    public void undoMove() {
+        if(!pastBoards.empty())
+            board = pastBoards.pop();
     }
 
     /**
