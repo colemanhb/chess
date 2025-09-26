@@ -14,10 +14,12 @@ public class ChessGame {
 
     private TeamColor currentTeam;
     private ChessBoard board;
-    private Stack<ChessBoard> pastBoards = new Stack<>();
+    private Stack<ChessBoard> pastBoards;
 
     public ChessGame() {
-
+        board = new ChessBoard();
+        currentTeam = TeamColor.WHITE;
+        pastBoards = new Stack<>();
     }
 
     /**
