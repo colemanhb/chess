@@ -14,6 +14,7 @@ import java.util.List;
 public class ValidMovesTests {
     private static final String TRAPPED_PIECE_MOVES = "ChessGame validMoves returned valid moves for a trapped piece";
 
+
     @Test
     @DisplayName("Check Forces Movement")
     public void forcedMove() {
