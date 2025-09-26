@@ -16,6 +16,13 @@ public class ChessBoard {
         
     }
 
+    public void movePiece(ChessMove move) {
+        ChessPosition startPosition = move.getStartPosition();
+        ChessPiece piece = getPiece(startPosition);
+        addPiece(move.getEndPosition(),piece);
+        addPiece(startPosition,null);
+    }
+
     /**
      * Adds a chess piece to the chessboard
      *

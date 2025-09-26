@@ -53,8 +53,13 @@ public class ChessGame {
         if(board.getPiece(startPosition) == null) {
             return null;
         }
-        Collection<ChessMove> moves = new HashSet<ChessMove>();
-        moves = board.getPiece(startPosition).pieceMoves(board,startPosition);
+        Collection<ChessMove> moves;
+        if(isInCheck(board.getPiece(startPosition).getTeamColor())) {
+            moves = null;
+        }
+        else {
+            moves = board.getPiece(startPosition).pieceMoves(board,startPosition);
+        }
         return moves;
     }
 
@@ -65,7 +70,23 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        var x = 0;
+        ChessPosition startPosition = move.getStartPosition();
+        Collection<ChessMove> validMoves = validMoves(startPosition);
+        boolean valid = false;
+        for(var validMove : validMoves) {
+            if(move.equals(validMove))
+                valid = true;
+        }
+        if(!valid) {
+            throw new InvalidMoveException();
+        }
+        else {
+            board.movePiece(move);
+        }
+    }
+    
+    public ChessBoard tryMove(ChessMove move) throws InvalidMoveException {
+        return null;
     }
 
     /**
