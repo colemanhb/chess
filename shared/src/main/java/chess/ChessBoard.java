@@ -21,6 +21,9 @@ public class ChessBoard {
         ChessPiece piece = getPiece(startPosition);
         addPiece(move.getEndPosition(),piece);
         addPiece(startPosition,null);
+        if(move.getPromotionPiece() != null) {
+            getPiece(move.getEndPosition()).promotePiece(move.getPromotionPiece());
+        }
     }
 
     /**
