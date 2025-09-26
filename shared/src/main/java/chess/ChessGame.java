@@ -83,6 +83,10 @@ public class ChessGame {
         else {
             board.movePiece(move);
         }
+        switch(currentTeam) {
+            case BLACK -> currentTeam = TeamColor.WHITE;
+            case WHITE -> currentTeam = TeamColor.BLACK;
+        }
     }
     
     public ChessBoard tryMove(ChessMove move) throws InvalidMoveException {
