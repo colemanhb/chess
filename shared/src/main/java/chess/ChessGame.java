@@ -113,7 +113,7 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        var kingLocation = findKing(teamColor);
+        var kingLocation = board.findKing(teamColor);
         if(board != null) {
             for (int i = 1; i <= 8; i++) {
                 for (int j = 1; j <= 8; j++) {
@@ -134,16 +134,19 @@ public class ChessGame {
     }
 
     public boolean isInCheck(TeamColor teamColor, ChessBoard otherBoard) {
-        var kingLocation = findKing(teamColor);
+        var kingLocation = otherBoard.findKing(teamColor);
+        System.out.println(kingLocation);
         if(otherBoard != null) {
             for (int i = 1; i <= 8; i++) {
                 for (int j = 1; j <= 8; j++) {
                     var piece = otherBoard.getPiece(new ChessPosition(i, j));
                     if (piece != null && piece.getTeamColor() != teamColor) {
                         for (var move : piece.pieceMoves(otherBoard, new ChessPosition(i, j))) {
-                            //System.out.println(move);
+                            if(i == 6 && j == 5) {
+                                System.out.println(move.getEndPosition());
+                                System.out.println(kingLocation);
+                            }
                             if (move.getEndPosition().equals(kingLocation)) {
-                                //System.out.println("CHECK");
                                 return true;
                             }
                         }
@@ -152,21 +155,6 @@ public class ChessGame {
             }
         }
         return false;
-    }
-
-    private ChessPosition findKing(TeamColor teamColor) {
-        if(board != null) {
-            for(int i = 1; i <= 8; i ++) {
-                for(int j = 1; j <= 8; j ++) {
-                    var pos = new ChessPosition(i,j);
-                    var piece = board.getPiece(pos);
-                    if (piece != null && piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() == teamColor) {
-                        return pos;
-                    }
-                }
-            }
-        }
-        return null;
     }
 
     /**
@@ -198,11 +186,13 @@ public class ChessGame {
                 var pos = new ChessPosition(i, j);
                 var piece = board.getPiece(pos);
                 if (piece != null && piece.getTeamColor() == teamColor) {
-                    for (var move : validMoves(pos)) {
+                    for (var move : piece.pieceMoves(board,pos)) {
+                        System.out.println(move);
                         ChessBoard otherBoard = board.clone();
                         otherBoard.movePiece(move);
                         if (!isInCheck(teamColor,otherBoard)) {
-                            //System.out.println(move);
+                            System.out.println(move);
+                            System.out.println(board.getPiece(new ChessPosition(6,5)));
                             return false;
                         }
                     }
