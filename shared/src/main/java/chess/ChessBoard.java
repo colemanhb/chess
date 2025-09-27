@@ -11,8 +11,11 @@ import java.util.Objects;
  */
 public class ChessBoard implements Cloneable{
 
-    final private ChessPiece[][] board = new ChessPiece[8][8];
+    private ChessPiece[][] board = new ChessPiece[8][8];
     public ChessBoard() {
+    }
+    public ChessBoard(ChessPiece[][] board) {
+        this.board = board;
     }
 
     public void movePiece(ChessMove move) {
@@ -104,12 +107,17 @@ public class ChessBoard implements Cloneable{
 
     @Override
     public ChessBoard clone() {
-        try {
-            ChessBoard clone = (ChessBoard) super.clone();
-            // TODO: copy mutable state here, so the clone can't change the internals of the original
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
+        var cloneBoard = new ChessPiece[8][8];
+        for(int i = 0; i < 8; i ++) {
+            for(int j = 0; j < 8; j ++) {
+                if (board[i][j] == null) {
+                    cloneBoard[i][j] = null;
+                }
+                else {
+                    cloneBoard[i][j] = board[i][j].clone();
+                }
+            }
         }
+        return new ChessBoard(cloneBoard);
     }
 }

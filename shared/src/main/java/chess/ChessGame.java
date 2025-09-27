@@ -62,14 +62,11 @@ public class ChessGame {
         TeamColor color = board.getPiece(startPosition).getTeamColor();
         HashSet<ChessMove> forcedMoves = new HashSet<>();
         for(var move : moves) {
-            //System.out.println("POSSIBLE MOVE");
-            //System.out.println(move);
             ChessBoard otherBoard = board.clone();
             otherBoard.movePiece(move);
             if(!isInCheck(color,otherBoard)) {
                 forcedMoves.add(move);
             }
-            //System.out.println(board.getPiece(new ChessPosition(6,2)) != null);
         }
         return forcedMoves;
     }
