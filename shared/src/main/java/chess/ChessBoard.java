@@ -13,7 +13,6 @@ public class ChessBoard implements Cloneable{
 
     final private ChessPiece[][] board = new ChessPiece[8][8];
     public ChessBoard() {
-        resetBoard();
     }
 
     public void movePiece(ChessMove move) {

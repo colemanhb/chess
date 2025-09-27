@@ -18,6 +18,7 @@ public class ChessGame {
 
     public ChessGame() {
         board = new ChessBoard();
+        board.resetBoard();
         currentTeam = TeamColor.WHITE;
         pastBoards = new Stack<>();
     }
@@ -61,11 +62,14 @@ public class ChessGame {
         TeamColor color = board.getPiece(startPosition).getTeamColor();
         HashSet<ChessMove> forcedMoves = new HashSet<>();
         for(var move : moves) {
-            board.movePiece(move);
-            if(!isInCheck(color)) {
+            //System.out.println("POSSIBLE MOVE");
+            //System.out.println(move);
+            ChessBoard otherBoard = board.clone();
+            otherBoard.movePiece(move);
+            if(!isInCheck(color,otherBoard)) {
                 forcedMoves.add(move);
             }
-            undoMove();
+            //System.out.println(board.getPiece(new ChessPosition(6,2)) != null);
         }
         return forcedMoves;
     }
@@ -83,8 +87,10 @@ public class ChessGame {
         Collection<ChessMove> validMoves = validMoves(startPosition);
         boolean valid = false;
         for(var validMove : validMoves) {
-            if(move.equals(validMove))
+            if(move.equals(validMove)) {
                 valid = true;
+                break;
+            }
         }
         if(!valid)
             throw new InvalidMoveException();
@@ -117,7 +123,30 @@ public class ChessGame {
                     var piece = board.getPiece(new ChessPosition(i, j));
                     if (piece != null && piece.getTeamColor() != teamColor) {
                         for (var move : piece.pieceMoves(board, new ChessPosition(i, j))) {
+                            //System.out.println(move);
                             if (move.getEndPosition().equals(kingLocation)) {
+                                //System.out.println("CHECK");
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean isInCheck(TeamColor teamColor, ChessBoard otherBoard) {
+        var kingLocation = findKing(teamColor);
+        if(otherBoard != null) {
+            for (int i = 1; i <= 8; i++) {
+                for (int j = 1; j <= 8; j++) {
+                    var piece = otherBoard.getPiece(new ChessPosition(i, j));
+                    if (piece != null && piece.getTeamColor() != teamColor) {
+                        for (var move : piece.pieceMoves(otherBoard, new ChessPosition(i, j))) {
+                            //System.out.println(move);
+                            if (move.getEndPosition().equals(kingLocation)) {
+                                //System.out.println("CHECK");
                                 return true;
                             }
                         }
@@ -165,19 +194,19 @@ public class ChessGame {
     }
 
     public boolean isInMate(TeamColor teamColor) {
-        for(int i = 1; i <= 8; i ++) {
-            for(int j = 1; j <= 8; j ++) {
-                var pos = new ChessPosition(i,j);
-                if(board!= null) {
-                    var piece = board.getPiece(pos);
-                    if (piece != null && piece.getTeamColor() == teamColor) {
-                        for(var move : validMoves(pos)) {
-                            board.movePiece(move);
-                            if(!isInCheck(teamColor)) {
-                                undoMove();
-                                return false;
-                            }
-                            undoMove();
+        if(board == null)
+            return true;
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++) {
+                var pos = new ChessPosition(i, j);
+                var piece = board.getPiece(pos);
+                if (piece != null && piece.getTeamColor() == teamColor) {
+                    for (var move : validMoves(pos)) {
+                        ChessBoard otherBoard = board.clone();
+                        otherBoard.movePiece(move);
+                        if (!isInCheck(teamColor,otherBoard)) {
+                            //System.out.println(move);
+                            return false;
                         }
                     }
                 }
