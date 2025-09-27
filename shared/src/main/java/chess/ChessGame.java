@@ -2,6 +2,7 @@ package chess;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Stack;
 
 /**
@@ -135,7 +136,6 @@ public class ChessGame {
 
     public boolean isInCheck(TeamColor teamColor, ChessBoard otherBoard) {
         var kingLocation = otherBoard.findKing(teamColor);
-        System.out.println(kingLocation);
         if(otherBoard != null) {
             for (int i = 1; i <= 8; i++) {
                 for (int j = 1; j <= 8; j++) {
@@ -143,8 +143,6 @@ public class ChessGame {
                     if (piece != null && piece.getTeamColor() != teamColor) {
                         for (var move : piece.pieceMoves(otherBoard, new ChessPosition(i, j))) {
                             if(i == 6 && j == 5) {
-                                System.out.println(move.getEndPosition());
-                                System.out.println(kingLocation);
                             }
                             if (move.getEndPosition().equals(kingLocation)) {
                                 return true;
@@ -187,12 +185,9 @@ public class ChessGame {
                 var piece = board.getPiece(pos);
                 if (piece != null && piece.getTeamColor() == teamColor) {
                     for (var move : piece.pieceMoves(board,pos)) {
-                        System.out.println(move);
                         ChessBoard otherBoard = board.clone();
                         otherBoard.movePiece(move);
                         if (!isInCheck(teamColor,otherBoard)) {
-                            System.out.println(move);
-                            System.out.println(board.getPiece(new ChessPosition(6,5)));
                             return false;
                         }
                     }
@@ -218,5 +213,27 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return board;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return currentTeam == chessGame.currentTeam && Objects.equals(board, chessGame.board) && Objects.equals(pastBoards, chessGame.pastBoards);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(currentTeam, board, pastBoards);
+    }
+
+    @Override
+    public String toString() {
+        return "ChessGame{" +
+                "currentTeam=" + currentTeam +
+                ", board=" + board +
+                '}';
     }
 }
