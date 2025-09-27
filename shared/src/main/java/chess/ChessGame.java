@@ -56,11 +56,12 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        if(board.getPiece(startPosition) == null) {
+        var piece = board.getPiece(startPosition);
+        if(piece == null) {
             return null;
         }
-        Collection<ChessMove> moves = board.getPiece(startPosition).pieceMoves(board,startPosition);
-        TeamColor color = board.getPiece(startPosition).getTeamColor();
+        Collection<ChessMove> moves = piece.pieceMoves(board,startPosition);
+        TeamColor color = piece.getTeamColor();
         HashSet<ChessMove> forcedMoves = new HashSet<>();
         for(var move : moves) {
             ChessBoard otherBoard = board.clone();
@@ -69,7 +70,84 @@ public class ChessGame {
                 forcedMoves.add(move);
             }
         }
+        if(piece.getPieceType() == ChessPiece.PieceType.KING) {
+            var queenSideCastleMove = castleMove(piece, startPosition, true);
+            if(queenSideCastleMove != null)
+                forcedMoves.add(queenSideCastleMove);
+            var kingSideCastleMove = castleMove(piece, startPosition, false);
+            if(kingSideCastleMove != null)
+                forcedMoves.add(queenSideCastleMove);
+        }
+        else {
+            var castleMove = castleMove(piece, startPosition, true);
+            if(castleMove != null)
+                forcedMoves.add(castleMove);
+        }
         return forcedMoves;
+    }
+
+    private ChessMove castleMove(ChessPiece piece, ChessPosition startPosition, boolean queenSide) {
+        var type = piece.getPieceType();
+        if(type == ChessPiece.PieceType.KING || type == ChessPiece.PieceType.ROOK) {
+            ChessPosition kingPosition;
+            ChessPosition rookPosition;
+            if(type == ChessPiece.PieceType.KING) {
+                kingPosition = startPosition;
+                rookPosition = castlePairPosition(startPosition,queenSide);
+            }
+            else {
+                kingPosition = castlePairPosition(startPosition,queenSide);
+                rookPosition = startPosition;
+            }
+            if(stagnant(kingPosition) && stagnant(rookPosition)) {
+                if(noChecks(kingPosition, castleEndPosition(kingPosition))) {
+                    return new ChessMove(startPosition, castleEndPosition(startPosition), null);
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean stagnant(ChessPosition pos) {
+        var currentPiece = board.getPiece(pos);
+        Stack<ChessBoard> pastBoardsCopy = pastBoards.clone();
+        while(!pastBoards.empty()) {
+            var pastBoard = pastBoards.pop();
+            if(pastBoard.getPiece(pos) != currentPiece) {
+                return false;
+            }
+        }
+        pastBoards = pastBoardsCopy;
+        return true;
+    }
+
+    private boolean noChecks(ChessPosition startPosition, ChessPosition endPosition) {
+
+    }
+
+    private ChessPosition castleEndPosition(ChessPosition startPosition) {
+        var row = startPosition.getRow();
+        var col = startPosition.getColumn();
+        if(col == 1)
+            return new ChessPosition(row,4);
+        if(col == 5)
+            return new ChessPosition(row,3);
+        if(col == 8)
+            return new ChessPosition(row,6);
+        return null;
+    }
+
+    private ChessPosition castlePairPosition(ChessPosition startPosition, boolean queenSide) {
+        var row = startPosition.getRow();
+        var col = startPosition.getColumn();
+        if(col == 1 || col == 8)
+            return new ChessPosition(row,5);
+        if(col == 5)
+            if(queenSide)
+                return new ChessPosition(row,8);
+            else
+                return new ChessPosition(row,1);
+        return null;
     }
 
     /**

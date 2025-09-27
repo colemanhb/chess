@@ -94,6 +94,21 @@ public class ChessBoard implements Cloneable{
         return null;
     }
 
+    public ChessPosition findPiece(ChessPiece pieceToFind) {
+        if(board != null) {
+            for(int i = 1; i <= 8; i ++) {
+                for(int j = 1; j <= 8; j ++) {
+                    var pos = new ChessPosition(i,j);
+                    var piece = getPiece(pos);
+                    if (piece != null && piece == pieceToFind) {
+                        return pos;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
