@@ -104,7 +104,25 @@ public class ChessGame {
                 forcedMoves.add(castleMove);
             }
         }
+        if(piece.getPieceType() == ChessPiece.PieceType.PAWN) {
+            var enPassantMove = enPassantMove(startPosition);
+            if(enPassantMove != null)
+                forcedMoves.add(enPassantMove);
+        }
         return forcedMoves;
+    }
+
+    private ChessMove enPassantMove(ChessPosition startPosition) {
+        var piece = board.getPiece(startPosition);
+        var color = piece.getTeamColor();
+        var row = startPosition.getRow();
+        var col = startPosition.getColumn();
+        if((color == TeamColor.BLACK && row == 4) || (color == TeamColor.WHITE && row == 5)) {
+            //if next to opposing pawn
+                //if opposing pawn just moved two squares
+                    //return new ChessMove
+        }
+        return null;
     }
 
     private ChessMove castleMove(ChessPiece piece, ChessPosition startPosition, boolean queenSide) {
