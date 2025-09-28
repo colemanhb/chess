@@ -315,6 +315,8 @@ public class ChessGame {
         if(board.getPiece(move.getStartPosition()) == null || board.getPiece(move.getStartPosition()).getTeamColor() != currentTeam)
             throw new InvalidMoveException();
         ChessPosition startPosition = move.getStartPosition();
+        ChessPosition endPosition = move.getEndPosition();
+        var color = board.getPiece(startPosition).getTeamColor();
         Collection<ChessMove> validMoves = validMoves(startPosition);
         boolean valid = false;
         for(var validMove : validMoves) {
@@ -326,6 +328,7 @@ public class ChessGame {
         if(!valid)
             throw new InvalidMoveException();
         else {
+            ChessPiece capturedPiece = board.getPiece(endPosition);
             pastBoards.push(board.clone());
             var piece = board.getPiece(startPosition);
             board.movePiece(move);
@@ -334,13 +337,35 @@ public class ChessGame {
             if(move.isCastle() || unlabeledCastle) {
                 board.movePiece(identifyOtherCastle(move));
             }
+            if(isEnPassant(move, capturedPiece)) {
+                System.out.println("Is en passant");
+                var enemyPosition = enemyLocation(endPosition);
+                board.removePiece(enemyPosition);
+            }
         }
         switch(currentTeam) {
             case BLACK -> currentTeam = TeamColor.WHITE;
             case WHITE -> currentTeam = TeamColor.BLACK;
         }
     }
-    
+
+    private boolean isEnPassant(ChessMove move, ChessPiece capturedPiece) {
+        System.out.println("isEnPassant function");
+        var startPos = move.getStartPosition();
+        var endPos = move.getEndPosition();
+        var diagonal = (startPos.getRow() != endPos.getRow()) && (startPos.getColumn() != endPos.getColumn());
+        return diagonal && capturedPiece == null;
+    }
+
+    private ChessPosition enemyLocation(ChessPosition pos) {
+        var row = pos.getRow();
+        var col = pos.getColumn();
+        var piece = board.getPiece(pos);
+        var color = piece.getTeamColor();
+        var rowIndex = (color == TeamColor.WHITE ? -1 : 1);
+        return new ChessPosition(row + rowIndex,col);
+    }
+
     public void undoMove() {
         if(!pastBoards.empty())
             board = pastBoards.pop();

@@ -30,6 +30,11 @@ public class ChessBoard implements Cloneable{
         }
     }
 
+    public void removePiece(ChessPosition pos) {
+        System.out.println("GOT TO REMOVEPIECE");
+        addPiece(pos, null);
+    }
+
     /**
      * Adds a chess piece to the chessboard
      *
