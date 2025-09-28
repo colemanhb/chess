@@ -105,24 +105,67 @@ public class ChessGame {
             }
         }
         if(piece.getPieceType() == ChessPiece.PieceType.PAWN) {
-            var enPassantMove = enPassantMove(startPosition);
+            var enPassantMove = enPassantMove(startPosition, true);
+            if(enPassantMove != null)
+                forcedMoves.add(enPassantMove);
+            enPassantMove = enPassantMove(startPosition, false);
             if(enPassantMove != null)
                 forcedMoves.add(enPassantMove);
         }
         return forcedMoves;
     }
 
-    private ChessMove enPassantMove(ChessPosition startPosition) {
+    private ChessMove enPassantMove(ChessPosition startPosition, boolean right) {
         var piece = board.getPiece(startPosition);
         var color = piece.getTeamColor();
         var row = startPosition.getRow();
         var col = startPosition.getColumn();
+        int rowIndex = (color == TeamColor.BLACK ? -1 : 1);
+        int colIndex = (right ? 1 : -1);
         if((color == TeamColor.BLACK && row == 4) || (color == TeamColor.WHITE && row == 5)) {
-            //if next to opposing pawn
-                //if opposing pawn just moved two squares
-                    //return new ChessMove
+            if(nextToEnemy(startPosition, right)) {
+                if(justMoved(new ChessPosition(row, col + colIndex))) {
+                    var endPosition = new ChessPosition(row + rowIndex, col + colIndex);
+                    return new ChessMove(startPosition,endPosition,null);
+                }
+            }
         }
         return null;
+    }
+
+    private boolean justMoved(ChessPosition pos) {
+        var currentRow = pos.getRow();
+        var currentCol = pos.getColumn();
+        var piece = board.getPiece(pos);
+        int oldRow = 0;
+        if(currentRow == 5)
+            oldRow = 7;
+        else if(currentRow == 4)
+            oldRow = 2;
+        var oldPosition = new ChessPosition(oldRow,currentCol);
+        var oldBoard = pastBoards.pop();
+        var oldPiece = oldBoard.getPiece(oldPosition);
+        pastBoards.push(oldBoard);
+        return oldPiece != null && oldPiece.equals(piece);
+    }
+
+    private boolean nextToEnemy(ChessPosition pos, boolean right) {
+        var col = pos.getColumn();
+        var row = pos.getRow();
+        var piece = board.getPiece(pos);
+        var color = piece.getTeamColor();
+        if(right) {
+            if(col == 8)
+                return false;
+            var rightSide = board.getPiece(new ChessPosition(row,col + 1));
+            return rightSide != null && rightSide.getPieceType() == ChessPiece.PieceType.PAWN && rightSide.getTeamColor() != color;
+        }
+        else {
+            if(col == 1)
+                return false;
+            var leftSide = board.getPiece(new ChessPosition(row,col - 1));
+            return leftSide != null && leftSide.getPieceType() == ChessPiece.PieceType.PAWN && leftSide.getTeamColor() != color;
+        }
     }
 
     private ChessMove castleMove(ChessPiece piece, ChessPosition startPosition, boolean queenSide) {
