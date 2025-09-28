@@ -77,6 +77,7 @@ public class ChessMove {
     @Override
     public String toString() {
         var p = (promotionPiece == null ? "" : ":" + promotionPiece);
-        return String.format("%s:%s%s", startPosition.toString(), endPosition.toString(), p);
+        var c = (castle == false ? "" : ": castle");
+        return String.format("%s:%s%s%s", startPosition.toString(), endPosition.toString(), p, c);
     }
 }
