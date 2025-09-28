@@ -121,7 +121,7 @@ public class ChessGame {
                 rookPosition = startPosition;
             }
             if(stagnant(kingPosition) && stagnant(rookPosition)) {
-                if(pathIsClear(identifyCastle(startPosition,queenSide))) {
+                if(pathIsClear(identifyCastle(startPosition,queenSide)) && !isInCheck(piece.getTeamColor())) {
                     return identifyCastle(startPosition,queenSide);
                 }
             }
