@@ -31,7 +31,6 @@ public class ChessBoard implements Cloneable{
     }
 
     public void removePiece(ChessPosition pos) {
-        System.out.println("GOT TO REMOVEPIECE");
         addPiece(pos, null);
     }
 
@@ -93,21 +92,6 @@ public class ChessBoard implements Cloneable{
                     var pos = new ChessPosition(i,j);
                     var piece = getPiece(pos);
                     if (piece != null && piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() == teamColor) {
-                        return pos;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    public ChessPosition findPiece(ChessPiece pieceToFind) {
-        if(board != null) {
-            for(int i = 1; i <= 8; i ++) {
-                for(int j = 1; j <= 8; j ++) {
-                    var pos = new ChessPosition(i,j);
-                    var piece = getPiece(pos);
-                    if (piece != null && piece == pieceToFind) {
                         return pos;
                     }
                 }

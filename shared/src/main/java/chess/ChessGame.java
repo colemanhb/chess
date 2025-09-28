@@ -316,7 +316,6 @@ public class ChessGame {
             throw new InvalidMoveException();
         ChessPosition startPosition = move.getStartPosition();
         ChessPosition endPosition = move.getEndPosition();
-        var color = board.getPiece(startPosition).getTeamColor();
         Collection<ChessMove> validMoves = validMoves(startPosition);
         boolean valid = false;
         for(var validMove : validMoves) {
@@ -338,7 +337,6 @@ public class ChessGame {
                 board.movePiece(identifyOtherCastle(move));
             }
             if(isEnPassant(move, capturedPiece)) {
-                System.out.println("Is en passant");
                 var enemyPosition = enemyLocation(endPosition);
                 board.removePiece(enemyPosition);
             }
@@ -350,11 +348,11 @@ public class ChessGame {
     }
 
     private boolean isEnPassant(ChessMove move, ChessPiece capturedPiece) {
-        System.out.println("isEnPassant function");
         var startPos = move.getStartPosition();
         var endPos = move.getEndPosition();
+        var piece = board.getPiece(endPos);
         var diagonal = (startPos.getRow() != endPos.getRow()) && (startPos.getColumn() != endPos.getColumn());
-        return diagonal && capturedPiece == null;
+        return piece.getPieceType() == ChessPiece.PieceType.PAWN && diagonal && capturedPiece == null;
     }
 
     private ChessPosition enemyLocation(ChessPosition pos) {
@@ -364,11 +362,6 @@ public class ChessGame {
         var color = piece.getTeamColor();
         var rowIndex = (color == TeamColor.WHITE ? -1 : 1);
         return new ChessPosition(row + rowIndex,col);
-    }
-
-    public void undoMove() {
-        if(!pastBoards.empty())
-            board = pastBoards.pop();
     }
 
     /**
@@ -398,17 +391,13 @@ public class ChessGame {
 
     public boolean isInCheck(TeamColor teamColor, ChessBoard otherBoard) {
         var kingLocation = otherBoard.findKing(teamColor);
-        if(otherBoard != null) {
-            for (int i = 1; i <= 8; i++) {
-                for (int j = 1; j <= 8; j++) {
-                    var piece = otherBoard.getPiece(new ChessPosition(i, j));
-                    if (piece != null && piece.getTeamColor() != teamColor) {
-                        for (var move : piece.pieceMoves(otherBoard, new ChessPosition(i, j))) {
-                            if(i == 6 && j == 5) {
-                            }
-                            if (move.getEndPosition().equals(kingLocation)) {
-                                return true;
-                            }
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++) {
+                var piece = otherBoard.getPiece(new ChessPosition(i, j));
+                if (piece != null && piece.getTeamColor() != teamColor) {
+                    for (var move : piece.pieceMoves(otherBoard, new ChessPosition(i, j))) {
+                        if (move.getEndPosition().equals(kingLocation)) {
+                            return true;
                         }
                     }
                 }
