@@ -1,7 +1,7 @@
 package service;
 
 import dataaccess.DataAccess;
-import model.RegisterResult;
+import model.*;
 
 public class Service {
     private DataAccess dataAccess;
@@ -9,8 +9,14 @@ public class Service {
         this.dataAccess = dataAccess;
     }
     public RegisterResult register(RegisterRequest registerRequest) {
-        dataAccess.saveUser(userData);
-        return new RegisterResult(userData.username(), "zyyz");
+        var existingUser = dataAccess.getUser(userData);
+        if(existingUser == null) {
+            dataAccess.saveUser(userData);
+            return new RegisterResult(userData.username(), "zyyz");
+        }
+        else {
+            throw AlreadyTakenException;
+        }
     }
     public LoginResult login(LoginRequest loginRequest) {
 
