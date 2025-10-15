@@ -6,17 +6,17 @@ import dataaccess.MemoryDataAccess;
 import model.UserData;
 import io.javalin.*;
 import io.javalin.http.Context;
-import service.UserService;
+import service.Service;
 
 public class Server {
 
     private final Javalin server;
-    private UserService userService = new UserService();
+    private Service service = new Service();
     private DataAccess dataAccess;
 
     public Server() {
         dataAccess = new MemoryDataAccess();
-        userService = new UserService();
+        service = new Service();
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register your endpoints and exception handlers here.
@@ -28,7 +28,7 @@ public class Server {
         String reqJson = ctx.body();
         var req = serializer.fromJson(reqJson, UserData.class);
         //call to the service and register
-        var res = userService.register(req);
+        var res = service.register(req);
         ctx.result(serializer.toJson(res));
     }
 

@@ -1,8 +1,7 @@
-import chess.*;
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
 import server.Server;
-import service.UserService;
+import service.Service;
 
 public class Main {
     public static void main(String[] args) {
@@ -13,7 +12,7 @@ public class Main {
             }
             DataAccess dataAccess = new MemoryDataAccess();
 
-            var service = new UserService(dataAccess);
+            var service = new Service(dataAccess);
             var server = new Server(service).run(port);
             port = server.port();
             System.out.printf("♕ 240 Chess Server: started on part %d with %s%n", port, dataAccess.getClass())
