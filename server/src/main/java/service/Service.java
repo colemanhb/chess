@@ -33,7 +33,7 @@ public class Service {
     public void joinGame(JoinGameRequest joinGameRequest) {
 
     }
-    public void clear(ClearRequest clearRequest) {
+    public void clear() {
 
     }
 }
