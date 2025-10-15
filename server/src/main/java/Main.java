@@ -1,11 +1,27 @@
 import chess.*;
+import dataaccess.DataAccess;
+import dataaccess.MemoryDataAccess;
 import server.Server;
+import service.UserService;
 
 public class Main {
     public static void main(String[] args) {
-        Server server = new Server();
+        try {
+            var port = 8080;
+            if (args.length >= 1) {
+                port = Integer.parseInt(args[0]);
+            }
+            DataAccess dataAccess = new MemoryDataAccess();
+
+            var service = new UserService(dataAccess);
+            var server = new Server(service).run(port);
+            port = server.port();
+            System.out.printf("♕ 240 Chess Server: started on part %d with %s%n", port, dataAccess.getClass())
+            return;
+        } catch (Throwable ex) {
+            System.out.printf("Unable to start server: %s%n", ex.getMessage());
+        }
         //var piece = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
-        server.run(8080);
-        System.out.println("♕ 240 Chess Server: ");
+
     }
 }
