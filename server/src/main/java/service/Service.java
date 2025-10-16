@@ -17,7 +17,7 @@ public class Service {
             return new RegisterResult(userData.username(), "zyyz");
         }
         else {
-            throw new Exception("AlreadyTakenException");
+            throw new AlreadyTakenException("Username not available");
         }
     }
     /*
