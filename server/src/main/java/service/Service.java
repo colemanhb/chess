@@ -8,17 +8,19 @@ public class Service {
     public Service(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
     }
-    /*
-    public RegisterResult register(RegisterRequest registerRequest) {
-        var existingUser = dataAccess.getUser(userData);
+
+    public RegisterResult register(RegisterRequest registerRequest) throws Exception {
+        var existingUser = dataAccess.getUser(registerRequest.username());
         if(existingUser == null) {
+            var userData = new UserData(registerRequest.username(), registerRequest.password(), registerRequest.email());
             dataAccess.saveUser(userData);
             return new RegisterResult(userData.username(), "zyyz");
         }
         else {
-            throw AlreadyTakenException;
+            throw new Exception("AlreadyTakenException");
         }
     }
+    /*
     public LoginResult login(LoginRequest loginRequest) {
 
     }
