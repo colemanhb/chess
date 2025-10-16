@@ -13,9 +13,9 @@ public class Main {
             DataAccess dataAccess = new MemoryDataAccess();
 
             var service = new Service(dataAccess);
-            var server = new Server(service).run(port);
-            port = server.port();
-            System.out.printf("♕ 240 Chess Server: started on part %d with %s%n", port, dataAccess.getClass())
+            var server = new Server().run(port);
+            port = server;
+            System.out.printf("♕ 240 Chess Server: started on part %d with %s%n", port, dataAccess.getClass());
             return;
         } catch (Throwable ex) {
             System.out.printf("Unable to start server: %s%n", ex.getMessage());

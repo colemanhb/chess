@@ -8,6 +8,7 @@ public class Service {
     public Service(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
     }
+    /*
     public RegisterResult register(RegisterRequest registerRequest) {
         var existingUser = dataAccess.getUser(userData);
         if(existingUser == null) {
@@ -36,4 +37,6 @@ public class Service {
     public void clear() {
 
     }
+
+     */
 }
