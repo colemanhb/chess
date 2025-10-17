@@ -8,7 +8,7 @@ public class ServiceException extends Exception {
 
     public enum Code {
         AlreadyTakenError,
-        BadRequestError
+        NotFoundError, IncorrectPasswordError, BadRequestError
     }
 
     final private Code code;
@@ -25,6 +25,7 @@ public class ServiceException extends Exception {
         return switch (code) {
             case AlreadyTakenError -> 403;
             case BadRequestError -> 400;
+            case NotFoundError, IncorrectPasswordError -> 401;
         };
     }
 }

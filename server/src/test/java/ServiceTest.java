@@ -1,4 +1,5 @@
 import dataaccess.MemoryDataAccess;
+import model.LoginRequest;
 import model.RegisterRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,43 @@ public class ServiceTest {
         userService.register(new RegisterRequest("cow", "rat", "john"));
         userService.clear();
         userService.register(new RegisterRequest("cow", "rat", "john"));
+    }
+
+    @Test
+    public void loginNormal() throws Exception {
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.register(new RegisterRequest("cow","rat", "john"));
+        var res = userService.login(new LoginRequest("cow", "rat"));
+        Assertions.assertNotNull(res);
+    }
+
+    @Test
+    public void loginWrongUsername() throws Exception {
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.register(new RegisterRequest("cow","rat","john"));
+        try {
+            var res = userService.login(new LoginRequest("col", "rat"));
+            fail("Expected exception to be thrown");
+        }
+        catch (ServiceException e) {
+            //Test passed, exception thrown as expected
+        }
+    }
+
+    @Test
+    public void loginWrongPassword() throws Exception {
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.register(new RegisterRequest("cow","rat","john"));
+        try {
+            var res = userService.login(new LoginRequest("cow", "ray"));
+            fail("Expected exception to be thrown");
+        }
+        catch (ServiceException e) {
+            //Test passed, exception thrown as expected
+        }
     }
 
 }
