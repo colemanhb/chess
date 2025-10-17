@@ -1,11 +1,9 @@
-import chess.InvalidMoveException;
 import dataaccess.MemoryDataAccess;
 import model.RegisterRequest;
-import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import service.AlreadyTakenException;
 import service.Service;
+import service.ServiceException;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -30,7 +28,7 @@ public class ServiceTest {
             var res = userService.register(new RegisterRequest("cow", "rat1", "john1"));
             fail("Expected exception to be thrown");
         }
-        catch (AlreadyTakenException e) {
+        catch (ServiceException e) {
             //Test passed, exception thrown as expected
         }
     }

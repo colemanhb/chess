@@ -19,7 +19,7 @@ public class Service {
             return new RegisterResult(userData.username(), "zyyz");
         }
         else {
-            throw new AlreadyTakenException("Username not available");
+            throw new ServiceException("Username not available", ServiceException.Code.AlreadyTakenError);
         }
     }
     /*

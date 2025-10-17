@@ -8,6 +8,7 @@ import model.UserData;
 import io.javalin.*;
 import io.javalin.http.Context;
 import service.Service;
+import service.ServiceException;
 
 import static io.javalin.apibuilder.ApiBuilder.*;
 
@@ -29,7 +30,7 @@ public class Server {
                 .post("/game/authToken/{gameName}", this::createGame)
                 .put("/game/authToken/{playerColor,gameID}", this::joinGame)*/
                 .delete("/db", this::clear)
-                .exception(Exception.class, this::exceptionHandler);
+                .exception(ServiceException.class, this::exceptionHandler);
     }
 
     private void register(Context ctx) throws Exception{
@@ -56,5 +57,9 @@ public class Server {
     }
     public void stop() {
         httpHandler.stop();
+    }
+    private void exceptionHandler(ServiceException e, Context ctx) {
+        ctx.status(e.toHttpStatusCode());
+        ctx.json(e.toJson());
     }
 }
