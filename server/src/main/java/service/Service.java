@@ -3,6 +3,8 @@ package service;
 import dataaccess.DataAccess;
 import model.*;
 
+import javax.xml.crypto.Data;
+
 public class Service {
     private DataAccess dataAccess;
     public Service(DataAccess dataAccess) {
@@ -36,9 +38,8 @@ public class Service {
     public void joinGame(JoinGameRequest joinGameRequest) {
 
     }
+    */
     public void clear() {
-
+        dataAccess.clearData();
     }
-
-     */
 }
