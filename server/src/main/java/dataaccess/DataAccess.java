@@ -16,4 +16,6 @@ public interface DataAccess {
     void deleteAuth(String authKey);
     void addAuth(AuthData authData);
     ArrayList<GameData> listGames();
+    void createGame(String gameName, int gameID);
+    boolean gameExists(String gameName);
 }

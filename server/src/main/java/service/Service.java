@@ -8,8 +8,10 @@ import java.util.UUID;
 
 public class Service {
     private final DataAccess dataAccess;
+    private int currentGameID;
     public Service(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
+        currentGameID = 0;
     }
 
     public LoginResult register(RegisterRequest registerRequest) throws Exception {
@@ -46,24 +48,23 @@ public class Service {
     }
 
     public void logout(AuthorizationRequest logoutRequest) throws Exception{
-        if(!dataAccess.findAuth(logoutRequest.authToken())) {
-            throw new ServiceException("Error: AuthToken not found", ServiceException.Code.NotLoggedInError);
-        }
+        checkAuthorization(logoutRequest);
         dataAccess.deleteAuth(logoutRequest.authToken());
     }
 
     public ListGamesResult listGames(AuthorizationRequest listGamesRequest) throws Exception{
-        if(!dataAccess.findAuth(listGamesRequest.authToken())) {
-            throw new ServiceException("Error: AuthToken not found", ServiceException.Code.NotLoggedInError);
-        }
-        var games = dataAccess.listGames();
-        return new ListGamesResult(games);
+        checkAuthorization(listGamesRequest);
+        return new ListGamesResult(dataAccess.listGames());
+    }
+
+    public CreateGameResult createGame(CreateGameRequest createGameRequest) throws Exception{
+        checkAuthorization(new AuthorizationRequest(createGameRequest.authToken()));
+        dataAccess.createGame(createGameRequest.gameName(), currentGameID);
+        currentGameID ++;
+        return new CreateGameResult(currentGameID - 1);
     }
 
     /*
-    public CreateGameResult createGame(CreateGameRequest createGameRequest) {
-
-    }
     public void joinGame(JoinGameRequest joinGameRequest) {
 
     }
@@ -74,5 +75,11 @@ public class Service {
 
     public static String generateToken() {
         return UUID.randomUUID().toString();
+    }
+
+    public void checkAuthorization(AuthorizationRequest authorizationRequest) throws Exception {
+        if(!dataAccess.findAuth(authorizationRequest.authToken())) {
+            throw new ServiceException("Error: AuthToken not found", ServiceException.Code.NotLoggedInError);
+        }
     }
 }

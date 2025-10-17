@@ -1,5 +1,6 @@
 import dataaccess.MemoryDataAccess;
 import model.AuthorizationRequest;
+import model.CreateGameRequest;
 import model.LoginRequest;
 import model.RegisterRequest;
 import org.junit.jupiter.api.Assertions;
@@ -145,4 +146,33 @@ public class ServiceTest {
         }
     }
 
+    @Test
+    public void createGameSuccess() throws Exception {
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.register(new RegisterRequest("cow","rat","john"));
+        var authTokens = dataAccess.auths.keySet();
+        var authToken = "";
+        for(String token : authTokens) {
+            authToken = token;
+        }
+        userService.createGame(new CreateGameRequest(authToken,"NEW GAME"));
+        Assertions.assertTrue(dataAccess.gameExists("NEW GAME"));
+    }
+
+    @Test
+    public void createGameFailure() throws Exception {
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.register(new RegisterRequest("cow","rat", "john"));
+        try {
+            userService.createGame(new CreateGameRequest("wrong", "NEW GAME"));
+            fail("Expected exception to be thrown");
+        }
+        catch (ServiceException e) {
+            //Test passed, exception thrown as expected
+        }
+    }
+
 }
+
