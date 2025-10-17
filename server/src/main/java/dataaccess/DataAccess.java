@@ -4,6 +4,7 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -14,5 +15,5 @@ public interface DataAccess {
     boolean findAuth(String authKey);
     void deleteAuth(String authKey);
     void addAuth(AuthData authData);
-    Vector<GameData> listGames();
+    ArrayList<GameData> listGames();
 }

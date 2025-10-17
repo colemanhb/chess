@@ -1,6 +1,6 @@
 package model;
 
-import java.util.Vector;
+import java.util.ArrayList;
 
-public record ListGamesResult(Vector<GameData> games) {
+public record ListGamesResult(ArrayList<GameData> games) {
 }

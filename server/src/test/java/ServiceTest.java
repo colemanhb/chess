@@ -118,4 +118,31 @@ public class ServiceTest {
         }
     }
 
+    @Test
+    public void listGamesSuccess() throws Exception {
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.register(new RegisterRequest("cow","rat","john"));
+        var authTokens = dataAccess.auths.keySet();
+        var authToken = "";
+        for(String token : authTokens) {
+            authToken = token;
+        }
+        var games = userService.listGames(new AuthorizationRequest(authToken));
+    }
+
+    @Test
+    public void listGamesFailure() throws Exception {
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.register(new RegisterRequest("cow","rat", "john"));
+        try {
+            userService.listGames(new AuthorizationRequest("wrong"));
+            fail("Expected exception to be thrown");
+        }
+        catch (ServiceException e) {
+            //Test passed, exception thrown as expected
+        }
+    }
+
 }

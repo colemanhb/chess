@@ -4,6 +4,7 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -35,8 +36,9 @@ public class MemoryDataAccess implements DataAccess{
     }
 
     @Override
-    public Vector<GameData> listGames() {
-        return (Vector<GameData>)games.values();
+    public ArrayList<GameData> listGames() {
+        var gamesCollection = games.values();
+        return new ArrayList<>(gamesCollection);
     }
 
     public void clearData() {
