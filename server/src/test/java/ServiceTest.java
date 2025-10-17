@@ -33,4 +33,23 @@ public class ServiceTest {
         }
     }
 
+    @Test
+    public void clearSuccess() throws Exception {
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.clear();
+        userService.register(new RegisterRequest("cow", "rat", "john"));
+        userService.clear();
+        Assertions.assertNull(dataAccess.getUser("cow"));
+    }
+
+    @Test
+    public void registerAfterClear() throws Exception{
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.register(new RegisterRequest("cow", "rat", "john"));
+        userService.clear();
+        userService.register(new RegisterRequest("cow", "rat", "john"));
+    }
+
 }
