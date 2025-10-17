@@ -1,4 +1,5 @@
 import dataaccess.MemoryDataAccess;
+import model.AuthorizationRequest;
 import model.LoginRequest;
 import model.RegisterRequest;
 import org.junit.jupiter.api.Assertions;
@@ -83,6 +84,33 @@ public class ServiceTest {
         userService.register(new RegisterRequest("cow","rat","john"));
         try {
             var res = userService.login(new LoginRequest("cow", "ray"));
+            fail("Expected exception to be thrown");
+        }
+        catch (ServiceException e) {
+            //Test passed, exception thrown as expected
+        }
+    }
+
+    @Test
+    public void logoutSuccess() throws Exception {
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.register(new RegisterRequest("cow","rat","john"));
+        var authTokens = dataAccess.auths.keySet();
+        var authToken = "";
+        for(String token : authTokens) {
+            authToken = token;
+        }
+        userService.logout(new AuthorizationRequest(authToken));
+    }
+
+    @Test
+    public void logoutFailure() throws Exception {
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.register(new RegisterRequest("cow","rat", "john"));
+        try {
+            userService.logout(new AuthorizationRequest("wrong"));
             fail("Expected exception to be thrown");
         }
         catch (ServiceException e) {
