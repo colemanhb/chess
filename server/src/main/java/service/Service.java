@@ -12,6 +12,9 @@ public class Service {
     }
 
     public RegisterResult register(RegisterRequest registerRequest) throws Exception {
+        if(registerRequest.username() == null || registerRequest.password() == null || registerRequest.email() == null) {
+            throw new ServiceException("Error: Bad request", ServiceException.Code.BadRequestError);
+        }
         var existingUser = dataAccess.getUser(registerRequest.username());
         if(existingUser == null) {
             var userData = new UserData(registerRequest.username(), registerRequest.password(), registerRequest.email());
@@ -19,7 +22,7 @@ public class Service {
             return new RegisterResult(userData.username(), "zyyz");
         }
         else {
-            throw new ServiceException("Username not available", ServiceException.Code.AlreadyTakenError);
+            throw new ServiceException("Error: Username not available", ServiceException.Code.AlreadyTakenError);
         }
     }
     /*

@@ -8,6 +8,7 @@ public class ServiceException extends Exception {
 
     public enum Code {
         AlreadyTakenError,
+        BadRequestError
     }
 
     final private Code code;
@@ -23,6 +24,7 @@ public class ServiceException extends Exception {
     public int toHttpStatusCode() {
         return switch (code) {
             case AlreadyTakenError -> 403;
+            case BadRequestError -> 400;
         };
     }
 }
