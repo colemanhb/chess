@@ -26,7 +26,7 @@ public class ServiceTest {
         var userService = new Service(dataAccess);
         userService.register(new RegisterRequest("cow", "rat", "john"));
         try {
-            var res = userService.register(new RegisterRequest("cow", "rat1", "john1"));
+            userService.register(new RegisterRequest("cow", "rat1", "john1"));
             fail("Expected exception to be thrown");
         }
         catch (ServiceException e) {
@@ -68,7 +68,7 @@ public class ServiceTest {
         var userService = new Service(dataAccess);
         userService.register(new RegisterRequest("cow","rat","john"));
         try {
-            var res = userService.login(new LoginRequest("col", "rat"));
+            userService.login(new LoginRequest("col", "rat"));
             fail("Expected exception to be thrown");
         }
         catch (ServiceException e) {
@@ -82,7 +82,7 @@ public class ServiceTest {
         var userService = new Service(dataAccess);
         userService.register(new RegisterRequest("cow","rat","john"));
         try {
-            var res = userService.login(new LoginRequest("cow", "ray"));
+            userService.login(new LoginRequest("cow", "ray"));
             fail("Expected exception to be thrown");
         }
         catch (ServiceException e) {
