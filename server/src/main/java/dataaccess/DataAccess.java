@@ -1,5 +1,6 @@
 package dataaccess;
 
+import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -17,5 +18,6 @@ public interface DataAccess {
     void addAuth(AuthData authData);
     ArrayList<GameData> listGames();
     void createGame(String gameName, int gameID);
-    boolean gameExists(String gameName);
+    GameData getGame(int gameID);
+    void addPlayerToGame(String authToken, ChessGame.TeamColor playerColor, int gameID);
 }

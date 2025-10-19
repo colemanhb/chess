@@ -11,9 +11,8 @@ import java.util.Vector;
 
 public class MemoryDataAccess implements DataAccess{
     private HashMap<String, UserData> users = new HashMap<>();
-    private HashMap<String, GameData> games = new HashMap<>();
+    public HashMap<Integer, GameData> games = new HashMap<>();
     public HashMap<String, AuthData> auths = new HashMap<>();
-    private int currentGameID = 0;
     @Override
     public void saveUser(UserData userData) {
         users.put(userData.username(), userData);
@@ -45,13 +44,23 @@ public class MemoryDataAccess implements DataAccess{
 
     @Override
     public void createGame(String gameName, int gameID) {
-        games.put(gameName, new GameData(gameID,null,null, gameName, new ChessGame()));
-        currentGameID ++;
+        games.put(gameID, new GameData(gameID,null,null, gameName, new ChessGame()));
     }
 
     @Override
-    public boolean gameExists(String gameName) {
-        return games.containsKey(gameName);
+    public GameData getGame(int gameID) {
+        return games.get(gameID);
+    }
+
+    @Override
+    public void addPlayerToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) {
+        var username = auths.get(authToken).username();
+        var existingGame = games.get(gameID);
+        if(playerColor == ChessGame.TeamColor.BLACK) {
+            games.put(gameID, new GameData(gameID, existingGame.whiteUsername(), username, existingGame.gameName(), existingGame.game()));
+        } else if (playerColor == ChessGame.TeamColor.WHITE) {
+            games.put(gameID, new GameData(gameID, username, existingGame.blackUsername(), existingGame.gameName(), existingGame.game()));
+        }
     }
 
     public void clearData() {

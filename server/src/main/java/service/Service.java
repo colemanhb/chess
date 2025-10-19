@@ -61,14 +61,23 @@ public class Service {
         checkAuthorization(new AuthorizationRequest(createGameRequest.authToken()));
         dataAccess.createGame(createGameRequest.gameName(), currentGameID);
         currentGameID ++;
+        //System.out.println(currentGameID - 1);
         return new CreateGameResult(currentGameID - 1);
     }
 
-    /*
-    public void joinGame(JoinGameRequest joinGameRequest) {
-
+    public void joinGame(JoinGameRequest joinGameRequest) throws Exception{
+        checkAuthorization(new AuthorizationRequest(joinGameRequest.authToken()));
+        var desiredGame = dataAccess.getGame(joinGameRequest.gameID());
+        if(desiredGame == null) {
+            throw new ServiceException("Error: unauthorized", ServiceException.Code.GameNotFoundError);
+        }
+        var existingPlayer = switch(joinGameRequest.playerColor()) {case BLACK -> desiredGame.blackUsername(); case WHITE -> desiredGame.whiteUsername();};
+        if(existingPlayer != null) {
+            throw new ServiceException("Error: already taken", ServiceException.Code.ColorNotAvailableError);
+        }
+        dataAccess.addPlayerToGame(joinGameRequest.authToken(), joinGameRequest.playerColor(), joinGameRequest.gameID());
     }
-    */
+
     public void clear() {
         dataAccess.clearData();
     }

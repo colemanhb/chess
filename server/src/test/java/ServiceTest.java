@@ -1,8 +1,6 @@
+import chess.ChessGame;
 import dataaccess.MemoryDataAccess;
-import model.AuthorizationRequest;
-import model.CreateGameRequest;
-import model.LoginRequest;
-import model.RegisterRequest;
+import model.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import service.Service;
@@ -129,7 +127,19 @@ public class ServiceTest {
         for(String token : authTokens) {
             authToken = token;
         }
-        var games = userService.listGames(new AuthorizationRequest(authToken));
+        userService.createGame(new CreateGameRequest(authToken, "FirstGame"));
+        userService.createGame(new CreateGameRequest(authToken, "SecondGame"));
+        var games = userService.listGames(new AuthorizationRequest(authToken)).games();
+        var firstName = games.get(0).gameName();
+        var secondName = games.get(1).gameName();
+        if(firstName.equals("FirstGame")) {
+            Assertions.assertEquals("SecondGame", secondName);
+        } else if (firstName.equals("SecondGame")) {
+            Assertions.assertEquals("SecondGame", secondName);
+        }
+        else {
+            fail();
+        }
     }
 
     @Test
@@ -157,7 +167,8 @@ public class ServiceTest {
             authToken = token;
         }
         userService.createGame(new CreateGameRequest(authToken,"NEW GAME"));
-        Assertions.assertTrue(dataAccess.gameExists("NEW GAME"));
+        var games = userService.listGames(new AuthorizationRequest(authToken)).games();
+        Assertions.assertEquals("NEW GAME", games.getFirst().gameName());
     }
 
     @Test
@@ -167,6 +178,66 @@ public class ServiceTest {
         userService.register(new RegisterRequest("cow","rat", "john"));
         try {
             userService.createGame(new CreateGameRequest("wrong", "NEW GAME"));
+            fail("Expected exception to be thrown");
+        }
+        catch (ServiceException e) {
+            //Test passed, exception thrown as expected
+        }
+    }
+
+    @Test
+    public void joinGameSuccess() throws Exception{
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.register(new RegisterRequest("cow","rat","john"));
+        var authTokens = dataAccess.auths.keySet();
+        var authToken = "";
+        for(String token : authTokens) {
+            authToken = token;
+        }
+        userService.createGame(new CreateGameRequest(authToken,"NEW GAME"));
+        var newGameData = userService.createGame(new CreateGameRequest(authToken,"NEW GAME"));
+        var gameID = newGameData.gameID();
+        userService.joinGame(new JoinGameRequest(authToken, ChessGame.TeamColor.BLACK, gameID));
+        var game = dataAccess.games.get(gameID);
+        Assertions.assertEquals("cow", game.blackUsername());
+    }
+
+    @Test
+    public void joinNonexistentGame() throws Exception{
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.register(new RegisterRequest("cow","rat","john"));
+        var authTokens = dataAccess.auths.keySet();
+        var authToken = "";
+        for(String token : authTokens) {
+            authToken = token;
+        }
+        userService.createGame(new CreateGameRequest(authToken,"NEW GAME"));
+        try {
+            userService.joinGame(new JoinGameRequest(authToken, ChessGame.TeamColor.BLACK, 9));
+            fail("Expected exception to be thrown");
+        }
+        catch (ServiceException e) {
+            //Test passed, exception thrown as expected
+        }
+    }
+
+    @Test
+    public void joinGameWrongColor() throws Exception{
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        userService.register(new RegisterRequest("cow","rat","john"));
+        var authTokens = dataAccess.auths.keySet();
+        var authToken = "";
+        for(String token : authTokens) {
+            authToken = token;
+        }
+        var newGameData = userService.createGame(new CreateGameRequest(authToken,"NEW GAME"));
+        var gameID = newGameData.gameID();
+        userService.joinGame(new JoinGameRequest(authToken, ChessGame.TeamColor.BLACK, gameID));
+        try {
+            userService.joinGame(new JoinGameRequest(authToken, ChessGame.TeamColor.BLACK, gameID));
             fail("Expected exception to be thrown");
         }
         catch (ServiceException e) {

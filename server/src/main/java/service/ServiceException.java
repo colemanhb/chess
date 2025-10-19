@@ -8,7 +8,12 @@ public class ServiceException extends Exception {
 
     public enum Code {
         AlreadyTakenError,
-        NotFoundError, IncorrectPasswordError, NotLoggedInError, BadRequestError
+        NotFoundError,
+        IncorrectPasswordError,
+        NotLoggedInError,
+        GameNotFoundError,
+        BadRequestError,
+        ColorNotAvailableError
     }
 
     final private Code code;
@@ -23,9 +28,9 @@ public class ServiceException extends Exception {
     }
     public int toHttpStatusCode() {
         return switch (code) {
-            case AlreadyTakenError -> 403;
+            case AlreadyTakenError, ColorNotAvailableError -> 403;
             case BadRequestError -> 400;
-            case NotFoundError, IncorrectPasswordError, NotLoggedInError -> 401;
+            case NotFoundError, IncorrectPasswordError, NotLoggedInError, GameNotFoundError -> 401;
         };
     }
 }
