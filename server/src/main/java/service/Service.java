@@ -79,7 +79,8 @@ public class Service {
         if(desiredGame == null) {
             throw new ServiceException("Error: unauthorized", ServiceException.Code.GameNotFoundError);
         }
-        var existingPlayer = switch(joinGameRequest.playerColor()) {case BLACK -> desiredGame.blackUsername(); case WHITE -> desiredGame.whiteUsername();};
+        var existingPlayer = switch(joinGameRequest.playerColor())
+        {case BLACK -> desiredGame.blackUsername(); case WHITE -> desiredGame.whiteUsername();};
         if(existingPlayer != null) {
             throw new ServiceException("Error: already taken", ServiceException.Code.ColorNotAvailableError);
         }

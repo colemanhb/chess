@@ -1,8 +1,6 @@
 package chess;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents a single chess piece
@@ -12,7 +10,7 @@ import java.util.Objects;
  */
 public class ChessPiece implements Cloneable{
 
-    private ChessGame.TeamColor pieceColor;
+    private final ChessGame.TeamColor pieceColor;
     private ChessPiece.PieceType type;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
@@ -81,11 +79,11 @@ public class ChessPiece implements Cloneable{
         if(type == PieceType.ROOK) {
             return rookMoves(board,myPosition);
         }
-        return new HashSet<ChessMove>();
+        return new HashSet<>();
     }
 
     private Collection<ChessMove> bishopMoves(ChessBoard board, ChessPosition myPosition) {
-        HashSet<ChessMove> moves = new HashSet<ChessMove>();
+        HashSet<ChessMove> moves = new HashSet<>();
         var row = myPosition.getRow();
         var col = myPosition.getColumn();
         //lower right
@@ -128,48 +126,51 @@ public class ChessPiece implements Cloneable{
         return moves;
     }
     private Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition) {
-        HashSet<ChessMove> moves = new HashSet();
+        HashSet<ChessMove> moves = new HashSet<>();
         var row = myPosition.getRow();
         var col = myPosition.getColumn();
-        for(int i = -1; i <= 1; i ++) {
-            for(int j = -1; j <= 1; j ++) {
-                if(i == 0 && j == 0) {
-                    continue;
+        for(var pos: squaresAround()) {
+            var i = pos.getRow();
+            var j = pos.getColumn();
+            if(i == 0 && j == 0) {
+                continue;
+            }
+            int endRow = row + i;
+            int endCol = col + j;
+            if(validSquare(endRow,endCol)) {
+                ChessPosition endPosition = new ChessPosition(endRow,endCol);
+                if(board.getPiece(endPosition) == null) {
+                    moves.add(new ChessMove(myPosition,endPosition,null));
                 }
-                int endRow = row + i;
-                int endCol = col + j;
-                if(validSquare(endRow,endCol)) {
-                    ChessPosition endPosition = new ChessPosition(endRow,endCol);
-                    if(board.getPiece(endPosition) == null) {
-                        moves.add(new ChessMove(myPosition,endPosition,null));
-                    }
-                    else if(board.getPiece(endPosition).getTeamColor() != pieceColor) {
-                        moves.add(new ChessMove(myPosition,endPosition,null));
-                    }
+                else if(board.getPiece(endPosition).getTeamColor() != pieceColor) {
+                    moves.add(new ChessMove(myPosition,endPosition,null));
                 }
             }
         }
         return moves;
     }
     private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition myPosition) {
-        HashSet<ChessMove> moves = new HashSet<ChessMove>();
+        HashSet<ChessMove> moves = new HashSet<>();
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
         for(int i = -2; i <= 2; i ++) {
             for(int j = -2; j <= 2; j ++) {
-                if(i * j != -2 && i * j != 2)
-                    continue;
-                int endRow = row + i;
-                int endCol = col + j;
-                if(validSquare(endRow,endCol)) {
-                    ChessPosition endPosition = new ChessPosition(endRow,endCol);
-                    if(board.getPiece(endPosition) == null) {
-                        moves.add(new ChessMove(myPosition,endPosition,null));
-                    }
-                    else if(board.getPiece(endPosition).getTeamColor() != pieceColor) {
-                        moves.add(new ChessMove(myPosition,endPosition,null));
-                    }
-                }
+                if(i * j != -2 && i * j != 2) {continue;}
+                moves.addAll(moveOneSpot(row + i, col + j, board, myPosition));
+            }
+        }
+        return moves;
+    }
+
+    public HashSet<ChessMove> moveOneSpot(int endRow, int endCol, ChessBoard board, ChessPosition myPosition) {
+        HashSet<ChessMove> moves = new HashSet<>();
+        if(validSquare(endRow,endCol)) {
+            ChessPosition endPosition = new ChessPosition(endRow,endCol);
+            if(board.getPiece(endPosition) == null) {
+                moves.add(new ChessMove(myPosition,endPosition,null));
+            }
+            else if(board.getPiece(endPosition).getTeamColor() != pieceColor) {
+                moves.add(new ChessMove(myPosition,endPosition,null));
             }
         }
         return moves;
@@ -276,31 +277,15 @@ public class ChessPiece implements Cloneable{
         var moves = new HashSet<ChessMove>();
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
-        for(int i = -1; i <= 1; i ++) {
-            for(int j = -1; j <= 1; j ++) {
-                if(i == 0 && j == 0) {
-                    continue;
-                }
-                while(validSquare(row + i,col + j)) {
-                    row += i;
-                    col += j;
-                    var endPosition = new ChessPosition(row,col);
-                    if(board.getPiece(endPosition) == null) {
-                        moves.add(new ChessMove(myPosition,endPosition,null));
-                    }
-                    else {
-                        if(board.getPiece(endPosition).getTeamColor() == pieceColor) {
-                            break;
-                        }
-                        else {
-                            moves.add(new ChessMove(myPosition,endPosition,null));
-                            break;
-                        }
-                    }
-                }
-                row = myPosition.getRow();
-                col = myPosition.getColumn();
+        for(var pos: squaresAround()) {
+            var i = pos.getRow();
+            var j = pos.getColumn();
+            if(i == 0 && j == 0) {
+                continue;
             }
+            moves.addAll(keepMoving(row, col, i, j, board, myPosition));
+            row = myPosition.getRow();
+            col = myPosition.getColumn();
         }
         return moves;
     }
@@ -309,33 +294,50 @@ public class ChessPiece implements Cloneable{
         var moves = new HashSet<ChessMove>();
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
-        for(int i = -1; i <= 1; i ++) {
-            for(int j = -1; j <= 1; j ++) {
-                if(i * j != 0 || i + j == 0) {
-                    continue;
+        for(var pos: squaresAround()) {
+            var i = pos.getRow();
+            var j = pos.getColumn();
+            if(i * j != 0 || i + j == 0) {
+                continue;
+            }
+            var movesToEdge = keepMoving(row, col, i, j, board, myPosition);
+            moves.addAll(movesToEdge);
+            row = myPosition.getRow();
+            col = myPosition.getColumn();
+        }
+        return moves;
+    }
+
+    private Collection<ChessMove> keepMoving(int row, int col, int i, int j, ChessBoard board, ChessPosition myPosition) {
+        var moves = new HashSet<ChessMove>();
+        while(validSquare(row + i, col + j)) {
+            row += i;
+            col += j;
+            var endPosition = new ChessPosition(row,col);
+            if(board.getPiece(endPosition) == null) {
+                moves.add(new ChessMove(myPosition,endPosition,null));
+            }
+            else {
+                if(board.getPiece(endPosition).getTeamColor() == pieceColor) {
+                    break;
                 }
-                while(validSquare(row + i, col + j)) {
-                    row += i;
-                    col += j;
-                    var endPosition = new ChessPosition(row,col);
-                    if(board.getPiece(endPosition) == null) {
-                        moves.add(new ChessMove(myPosition,endPosition,null));
-                    }
-                    else {
-                        if(board.getPiece(endPosition).getTeamColor() == pieceColor) {
-                            break;
-                        }
-                        else {
-                            moves.add(new ChessMove(myPosition,endPosition,null));
-                            break;
-                        }
-                    }
+                else {
+                    moves.add(new ChessMove(myPosition,endPosition,null));
+                    break;
                 }
-                row = myPosition.getRow();
-                col = myPosition.getColumn();
             }
         }
         return moves;
+    }
+
+    private List<ChessPosition> squaresAround() {
+        List<ChessPosition> positions = new ArrayList<>();
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                positions.add(new ChessPosition(i,j));
+            }
+        }
+        return positions;
     }
 
     private void addOptions(HashSet<ChessMove> moves, ChessMove move) {

@@ -1,7 +1,5 @@
 package chess;
 
-import java.util.Objects;
-
 /**
  * Represents moving a chess piece on a chessboard
  * <p>
@@ -10,10 +8,10 @@ import java.util.Objects;
  */
 public class ChessMove {
 
-    private ChessPosition startPosition;
-    private ChessPosition endPosition;
-    private ChessPiece.PieceType promotionPiece;
-    private boolean castle;
+    private final ChessPosition startPosition;
+    private final ChessPosition endPosition;
+    private final ChessPiece.PieceType promotionPiece;
+    private final boolean castle;
 
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
@@ -60,8 +58,8 @@ public class ChessMove {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
         ChessMove move = (ChessMove) o;
         return (startPosition.equals(move.startPosition) && endPosition.equals(move.endPosition)
                 && promotionPiece == move.promotionPiece);
@@ -77,7 +75,7 @@ public class ChessMove {
     @Override
     public String toString() {
         var p = (promotionPiece == null ? "" : ":" + promotionPiece);
-        var c = (castle == false ? "" : ": castle");
+        var c = (!castle ? "" : ": castle");
         return String.format("%s:%s%s%s", startPosition.toString(), endPosition.toString(), p, c);
     }
 }
