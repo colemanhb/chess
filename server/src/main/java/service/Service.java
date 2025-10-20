@@ -11,7 +11,7 @@ public class Service {
     private int currentGameID;
     public Service(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
-        currentGameID = 0;
+        currentGameID = 1;
     }
 
     public LoginResult register(RegisterRequest registerRequest) throws Exception {

@@ -43,10 +43,11 @@ public class Server {
         var serializer = new Gson();
         String jsonRequest = ctx.body();
         var request = serializer.fromJson(jsonRequest, CreateGameRequest.class);
+        String authToken = ctx.header("authorization");
+        request = new CreateGameRequest(authToken, request.gameName());
         //call to the service
         var res = service.createGame(request);
         ctx.result(serializer.toJson(res));
-
     }
 
     private void listGames(@NotNull Context ctx) throws Exception {
