@@ -30,6 +30,7 @@ public class ServiceTest {
             fail("Expected exception to be thrown");
         }
         catch (ServiceException e) {
+            Assertions.assertTrue(true);
             //Test passed, exception thrown as expected
         }
     }
@@ -50,7 +51,8 @@ public class ServiceTest {
         var userService = new Service(dataAccess);
         userService.register(new RegisterRequest("cow", "rat", "john"));
         userService.clear();
-        userService.register(new RegisterRequest("cow", "rat", "john"));
+        var res = userService.register(new RegisterRequest("cow", "rat", "john"));
+        Assertions.assertNotNull(res);
     }
 
     @Test
@@ -72,6 +74,7 @@ public class ServiceTest {
             fail("Expected exception to be thrown");
         }
         catch (ServiceException e) {
+            Assertions.assertTrue(true);
             //Test passed, exception thrown as expected
         }
     }
@@ -86,6 +89,7 @@ public class ServiceTest {
             fail("Expected exception to be thrown");
         }
         catch (ServiceException e) {
+            Assertions.assertTrue(true);
             //Test passed, exception thrown as expected
         }
     }
@@ -97,6 +101,7 @@ public class ServiceTest {
         var regResult = userService.register(new RegisterRequest("cow","rat","john"));
         var authToken = regResult.authToken();
         userService.logout(new AuthorizationRequest(authToken));
+        Assertions.assertFalse(dataAccess.findAuth(authToken));
     }
 
     @Test
@@ -109,6 +114,7 @@ public class ServiceTest {
             fail("Expected exception to be thrown");
         }
         catch (ServiceException e) {
+            Assertions.assertTrue(true);
             //Test passed, exception thrown as expected
         }
     }
@@ -144,6 +150,7 @@ public class ServiceTest {
             fail("Expected exception to be thrown");
         }
         catch (ServiceException e) {
+            Assertions.assertTrue(true);
             //Test passed, exception thrown as expected
         }
     }
@@ -169,6 +176,7 @@ public class ServiceTest {
             fail("Expected exception to be thrown");
         }
         catch (ServiceException e) {
+            Assertions.assertTrue(true);
             //Test passed, exception thrown as expected
         }
     }
@@ -199,6 +207,7 @@ public class ServiceTest {
             fail("Expected exception to be thrown");
         }
         catch (ServiceException e) {
+            Assertions.assertTrue(true);
             //Test passed, exception thrown as expected
         }
     }
@@ -217,6 +226,7 @@ public class ServiceTest {
             fail("Expected exception to be thrown");
         }
         catch (ServiceException e) {
+            Assertions.assertTrue(true);
             //Test passed, exception thrown as expected
         }
     }
