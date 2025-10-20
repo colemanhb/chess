@@ -375,33 +375,35 @@ public class ChessGame {
      */
     public boolean isInCheck(TeamColor teamColor) {
         var kingLocation = board.findKing(teamColor);
-        if(board != null) {
-            for (int i = 1; i <= 8; i++) {
-                for (int j = 1; j <= 8; j++) {
-                    var piece = board.getPiece(new ChessPosition(i, j));
-                    if (piece != null && piece.getTeamColor() != teamColor) {
-                        for (var move : piece.pieceMoves(board, new ChessPosition(i, j))) {
-                            if (move.getEndPosition().equals(kingLocation)) {
-                                return true;
-                            }
-                        }
+        if(board == null) {
+            return false;
+        }
+        for(var pos : allPositions()) {
+            var i = pos.getRow();
+            var j = pos.getColumn();
+            var piece = board.getPiece(new ChessPosition(i, j));
+            if (piece != null && piece.getTeamColor() != teamColor) {
+                for (var move : piece.pieceMoves(board, new ChessPosition(i, j))) {
+                    if (move.getEndPosition().equals(kingLocation)) {
+                        return true;
                     }
                 }
             }
         }
+
         return false;
     }
 
     public boolean isInCheck(TeamColor teamColor, ChessBoard otherBoard) {
         var kingLocation = otherBoard.findKing(teamColor);
-        for (int i = 1; i <= 8; i++) {
-            for (int j = 1; j <= 8; j++) {
-                var piece = otherBoard.getPiece(new ChessPosition(i, j));
-                if (piece != null && piece.getTeamColor() != teamColor) {
-                    for (var move : piece.pieceMoves(otherBoard, new ChessPosition(i, j))) {
-                        if (move.getEndPosition().equals(kingLocation)) {
-                            return true;
-                        }
+        for(var pos : allPositions()) {
+            var i = pos.getRow();
+            var j = pos.getColumn();
+            var piece = otherBoard.getPiece(new ChessPosition(i, j));
+            if (piece != null && piece.getTeamColor() != teamColor) {
+                for (var move : piece.pieceMoves(otherBoard, new ChessPosition(i, j))) {
+                    if (move.getEndPosition().equals(kingLocation)) {
+                        return true;
                     }
                 }
             }

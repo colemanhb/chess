@@ -135,17 +135,7 @@ public class ChessPiece implements Cloneable{
             if(i == 0 && j == 0) {
                 continue;
             }
-            int endRow = row + i;
-            int endCol = col + j;
-            if(validSquare(endRow,endCol)) {
-                ChessPosition endPosition = new ChessPosition(endRow,endCol);
-                if(board.getPiece(endPosition) == null) {
-                    moves.add(new ChessMove(myPosition,endPosition,null));
-                }
-                else if(board.getPiece(endPosition).getTeamColor() != pieceColor) {
-                    moves.add(new ChessMove(myPosition,endPosition,null));
-                }
-            }
+            moves.addAll(moveOneSpot(row + i, col + j, board, myPosition));
         }
         return moves;
     }
