@@ -34,9 +34,10 @@ public class Server {
         var serializer = new Gson();
         String jsonRequest = ctx.body();
         var request = serializer.fromJson(jsonRequest, JoinGameRequest.class);
+        String authToken = ctx.header("authorization");
+        request = new JoinGameRequest(authToken, request.playerColor(), request.gameID());
         //call to the service
         service.joinGame(request);
-
     }
 
     private void createGame(@NotNull Context ctx) throws Exception {
@@ -52,25 +53,19 @@ public class Server {
 
     private void listGames(@NotNull Context ctx) throws Exception {
         var serializer = new Gson();
-        String jsonRequest = ctx.body();
-        var request = serializer.fromJson(jsonRequest, AuthorizationRequest.class);
+        String authToken = ctx.header("authorization");
+        var request = new AuthorizationRequest(authToken);
         //call to the service
         var res = service.listGames(request);
         ctx.result(serializer.toJson(res));
 
     }
 
-    private void logout(@NotNull Context ctx){
+    private void logout(@NotNull Context ctx) throws Exception {
         String authToken = ctx.header("authorization");
         var request = new AuthorizationRequest(authToken);
         //call to the service
-        try{
-            service.logout(request);
-            ctx.status(200).result("{}");
-        }
-        catch (Exception e) {
-            ctx.status(401).result("{\"message\": \"Error: unauthorized\"}");
-        }
+        service.logout(request);
     }
 
     private void register(Context ctx) throws Exception{

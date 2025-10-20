@@ -60,6 +60,9 @@ public class Service {
     }
 
     public CreateGameResult createGame(CreateGameRequest createGameRequest) throws Exception{
+        if(createGameRequest.gameName() == null) {
+            throw new ServiceException("Error: Bad request", ServiceException.Code.BadRequestError);
+        }
         checkAuthorization(new AuthorizationRequest(createGameRequest.authToken()));
         dataAccess.createGame(createGameRequest.gameName(), currentGameID);
         currentGameID ++;
@@ -68,6 +71,9 @@ public class Service {
     }
 
     public void joinGame(JoinGameRequest joinGameRequest) throws Exception{
+        if(joinGameRequest.playerColor() == null || joinGameRequest.gameID() == 0) {
+            throw new ServiceException("Error: Bad request", ServiceException.Code.BadRequestError);
+        }
         checkAuthorization(new AuthorizationRequest(joinGameRequest.authToken()));
         var desiredGame = dataAccess.getGame(joinGameRequest.gameID());
         if(desiredGame == null) {
