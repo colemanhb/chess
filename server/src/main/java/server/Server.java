@@ -59,13 +59,17 @@ public class Server {
 
     }
 
-    private void logout(@NotNull Context ctx) throws Exception {
-        var serializer = new Gson();
-        String jsonRequest = ctx.body();
-        var request = serializer.fromJson(jsonRequest, AuthorizationRequest.class);
+    private void logout(@NotNull Context ctx){
+        String authToken = ctx.header("authorization");
+        var request = new AuthorizationRequest(authToken);
         //call to the service
-        service.logout(request);
-
+        try{
+            service.logout(request);
+            ctx.status(200).result("{}");
+        }
+        catch (Exception e) {
+            ctx.status(401).result("{\"message\": \"Error: unauthorized\"}");
+        }
     }
 
     private void register(Context ctx) throws Exception{

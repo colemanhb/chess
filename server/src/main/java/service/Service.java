@@ -49,7 +49,9 @@ public class Service {
 
     public void logout(AuthorizationRequest logoutRequest) throws Exception{
         checkAuthorization(logoutRequest);
+        //System.out.println("Authorization found!" + logoutRequest.authToken());
         dataAccess.deleteAuth(logoutRequest.authToken());
+        //System.out.println("Authorization deleted!" + logoutRequest.authToken());
     }
 
     public ListGamesResult listGames(AuthorizationRequest listGamesRequest) throws Exception{
@@ -87,6 +89,9 @@ public class Service {
     }
 
     public void checkAuthorization(AuthorizationRequest authorizationRequest) throws Exception {
+        if(authorizationRequest.authToken() == null) {
+            throw new ServiceException("Error: Bad request", ServiceException.Code.BadRequestError);
+        }
         if(!dataAccess.findAuth(authorizationRequest.authToken())) {
             throw new ServiceException("Error: AuthToken not found", ServiceException.Code.NotLoggedInError);
         }

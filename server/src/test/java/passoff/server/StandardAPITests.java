@@ -145,7 +145,6 @@ public class StandardAPITests {
     public void logoutSuccess() {
         //log out existing user
         TestResult result = serverFacade.logout(existingAuth);
-
         assertHttpOk(result);
     }
 
@@ -157,7 +156,6 @@ public class StandardAPITests {
         //second logout should fail
         serverFacade.logout(existingAuth);
         TestResult result = serverFacade.logout(existingAuth);
-
         assertHttpUnauthorized(result);
     }
 
