@@ -10,8 +10,8 @@ import java.util.HashMap;
 
 public class MemoryDataAccess implements DataAccess{
     private final HashMap<String, UserData> users = new HashMap<>();
-    public HashMap<Integer, GameData> games = new HashMap<>();
-    public HashMap<String, AuthData> auths = new HashMap<>();
+    private final HashMap<Integer, GameData> games = new HashMap<>();
+    private final HashMap<String, AuthData> auths = new HashMap<>();
     @Override
     public void saveUser(UserData userData) {
         users.put(userData.username(), userData);

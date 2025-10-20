@@ -1,10 +1,10 @@
+package service;
+
 import chess.ChessGame;
 import dataaccess.MemoryDataAccess;
 import model.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import service.Service;
-import service.ServiceException;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -94,12 +94,8 @@ public class ServiceTest {
     public void logoutSuccess() throws Exception {
         var dataAccess = new MemoryDataAccess();
         var userService = new Service(dataAccess);
-        userService.register(new RegisterRequest("cow","rat","john"));
-        var authTokens = dataAccess.auths.keySet();
-        var authToken = "";
-        for(String token : authTokens) {
-            authToken = token;
-        }
+        var regResult = userService.register(new RegisterRequest("cow","rat","john"));
+        var authToken = regResult.authToken();
         userService.logout(new AuthorizationRequest(authToken));
     }
 
@@ -121,12 +117,8 @@ public class ServiceTest {
     public void listGamesSuccess() throws Exception {
         var dataAccess = new MemoryDataAccess();
         var userService = new Service(dataAccess);
-        userService.register(new RegisterRequest("cow","rat","john"));
-        var authTokens = dataAccess.auths.keySet();
-        var authToken = "";
-        for(String token : authTokens) {
-            authToken = token;
-        }
+        var regResult = userService.register(new RegisterRequest("cow","rat","john"));
+        var authToken = regResult.authToken();
         userService.createGame(new CreateGameRequest(authToken, "FirstGame"));
         userService.createGame(new CreateGameRequest(authToken, "SecondGame"));
         var games = userService.listGames(new AuthorizationRequest(authToken)).games();
@@ -160,12 +152,8 @@ public class ServiceTest {
     public void createGameSuccess() throws Exception {
         var dataAccess = new MemoryDataAccess();
         var userService = new Service(dataAccess);
-        userService.register(new RegisterRequest("cow","rat","john"));
-        var authTokens = dataAccess.auths.keySet();
-        var authToken = "";
-        for(String token : authTokens) {
-            authToken = token;
-        }
+        var regResult = userService.register(new RegisterRequest("cow","rat","john"));
+        var authToken = regResult.authToken();
         userService.createGame(new CreateGameRequest(authToken,"NEW GAME"));
         var games = userService.listGames(new AuthorizationRequest(authToken)).games();
         Assertions.assertEquals("NEW GAME", games.getFirst().gameName());
@@ -189,17 +177,13 @@ public class ServiceTest {
     public void joinGameSuccess() throws Exception{
         var dataAccess = new MemoryDataAccess();
         var userService = new Service(dataAccess);
-        userService.register(new RegisterRequest("cow","rat","john"));
-        var authTokens = dataAccess.auths.keySet();
-        var authToken = "";
-        for(String token : authTokens) {
-            authToken = token;
-        }
+        var regResult = userService.register(new RegisterRequest("cow","rat","john"));
+        var authToken = regResult.authToken();
         userService.createGame(new CreateGameRequest(authToken,"NEW GAME"));
         var newGameData = userService.createGame(new CreateGameRequest(authToken,"NEW GAME"));
         var gameID = newGameData.gameID();
         userService.joinGame(new JoinGameRequest(authToken, ChessGame.TeamColor.BLACK, gameID));
-        var game = dataAccess.games.get(gameID);
+        var game = dataAccess.getGame(gameID);
         Assertions.assertEquals("cow", game.blackUsername());
     }
 
@@ -207,12 +191,8 @@ public class ServiceTest {
     public void joinNonexistentGame() throws Exception{
         var dataAccess = new MemoryDataAccess();
         var userService = new Service(dataAccess);
-        userService.register(new RegisterRequest("cow","rat","john"));
-        var authTokens = dataAccess.auths.keySet();
-        var authToken = "";
-        for(String token : authTokens) {
-            authToken = token;
-        }
+        var regResult = userService.register(new RegisterRequest("cow","rat","john"));
+        var authToken = regResult.authToken();
         userService.createGame(new CreateGameRequest(authToken,"NEW GAME"));
         try {
             userService.joinGame(new JoinGameRequest(authToken, ChessGame.TeamColor.BLACK, 9));
@@ -227,12 +207,8 @@ public class ServiceTest {
     public void joinGameWrongColor() throws Exception{
         var dataAccess = new MemoryDataAccess();
         var userService = new Service(dataAccess);
-        userService.register(new RegisterRequest("cow","rat","john"));
-        var authTokens = dataAccess.auths.keySet();
-        var authToken = "";
-        for(String token : authTokens) {
-            authToken = token;
-        }
+        var regResult = userService.register(new RegisterRequest("cow","rat","john"));
+        var authToken = regResult.authToken();
         var newGameData = userService.createGame(new CreateGameRequest(authToken,"NEW GAME"));
         var gameID = newGameData.gameID();
         userService.joinGame(new JoinGameRequest(authToken, ChessGame.TeamColor.BLACK, gameID));
