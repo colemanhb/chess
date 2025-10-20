@@ -7,10 +7,9 @@ import model.UserData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Vector;
 
 public class MemoryDataAccess implements DataAccess{
-    private HashMap<String, UserData> users = new HashMap<>();
+    private final HashMap<String, UserData> users = new HashMap<>();
     public HashMap<Integer, GameData> games = new HashMap<>();
     public HashMap<String, AuthData> auths = new HashMap<>();
     @Override
