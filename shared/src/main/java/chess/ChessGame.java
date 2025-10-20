@@ -45,7 +45,6 @@ public class ChessGame {
     public TeamColor getTeamTurn() {
         return currentTeam;
     }
-
     /**
      * Set's which teams turn it is
      *
@@ -54,7 +53,6 @@ public class ChessGame {
     public void setTeamTurn(TeamColor team) {
         currentTeam = team;
     }
-
     /**
      * Enum identifying the 2 possible teams in a chess game
      */
@@ -62,7 +60,6 @@ public class ChessGame {
         WHITE,
         BLACK
     }
-
     /**
      * Gets a valid moves for a piece at the given location
      *
@@ -393,7 +390,6 @@ public class ChessGame {
 
         return false;
     }
-
     public boolean isInCheck(TeamColor teamColor, ChessBoard otherBoard) {
         var kingLocation = otherBoard.findKing(teamColor);
         for(var pos : allPositions()) {
@@ -410,7 +406,6 @@ public class ChessGame {
         }
         return false;
     }
-
     /**
      * Determines if the given team is in checkmate
      *
@@ -420,7 +415,6 @@ public class ChessGame {
     public boolean isInCheckmate(TeamColor teamColor) {
         return isInCheck(teamColor) && isInMate(teamColor);
     }
-
     /**
      * Determines if the given team is in stalemate, which here is defined as having
      * no valid moves while not in check.
@@ -431,7 +425,6 @@ public class ChessGame {
     public boolean isInStalemate(TeamColor teamColor) {
         return !isInCheck(teamColor) && isInMate(teamColor);
     }
-
     public boolean isInMate(TeamColor teamColor) {
         if(board == null) {return true;}
         for (var pos: allPositions()) {
@@ -444,9 +437,8 @@ public class ChessGame {
         }
         return true;
     }
-
     private boolean hasLegalMove(ChessPiece piece, ChessPosition pos, ChessBoard board, TeamColor teamColor) {
-        for (var move : piece.pieceMoves(board,pos)) {
+        for (var move : piece.pieceMoves(board, pos)) {
             ChessBoard otherBoard = board.clone();
             otherBoard.movePiece(move);
             if (!isInCheck(teamColor, otherBoard)) {
@@ -455,11 +447,9 @@ public class ChessGame {
         }
         return false;
     }
-
     private boolean isTeamPiece(ChessPiece piece, TeamColor teamColor) {
         return piece != null && piece.getTeamColor() == teamColor;
     }
-
     private List<ChessPosition> allPositions() {
         List<ChessPosition> positions = new ArrayList<>();
         for (int i = 1; i <= 8; i++) {
@@ -469,7 +459,6 @@ public class ChessGame {
         }
         return positions;
     }
-
     /**
      * Sets this game's chessboard with a given board
      *
@@ -478,7 +467,6 @@ public class ChessGame {
     public void setBoard(ChessBoard board) {
         this.board = board;
     }
-
     /**
      * Gets the current chessboard
      *
@@ -487,7 +475,6 @@ public class ChessGame {
     public ChessBoard getBoard() {
         return board;
     }
-
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
@@ -496,12 +483,10 @@ public class ChessGame {
         ChessGame chessGame = (ChessGame) o;
         return currentTeam == chessGame.currentTeam && Objects.equals(board, chessGame.board) && Objects.equals(pastBoards, chessGame.pastBoards);
     }
-
     @Override
     public int hashCode() {
         return Objects.hash(currentTeam, board, pastBoards);
     }
-
     @Override
     public String toString() {
         return "ChessGame{" +
