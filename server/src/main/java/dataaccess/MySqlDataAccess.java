@@ -13,6 +13,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import static java.sql.Types.NULL;
+
 public class MySqlDataAccess implements DataAccess{
 
     public MySqlDataAccess() throws Exception {
@@ -20,8 +22,27 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public void saveUser(UserData userData) {
+    public void saveUser(UserData userData) throws Exception {
+        var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
+        executeUpdate(statement, userData.username(), hashPassword(userData.password()), userData.email());
+    }
 
+    private void executeUpdate(String statement, Object... params) throws Exception {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                for (int i = 0; i < params.length; i++) {
+                    Object param = params[i];
+                    if (param instanceof String p) ps.setString(i + 1, p);
+                    /*else if (param instanceof Integer p) ps.setInt(i + 1, p);
+                    else if (param instanceof PetType p) ps.setString(i + 1, p.toString());*/
+                    else if (param == null) ps.setNull(i + 1, NULL);
+                }
+                ps.executeUpdate();
+            }
+        } catch (Exception e) {
+            //throw new DataBaseException(ResponseException.Code.ServerError, String.format("unable to update database: %s, %s", statement, e.getMessage()));
+            throw new DataAccessException(String.format("unable to update database: %s, %s", statement, e.getMessage()));
+        }
     }
 
     @Override
@@ -49,8 +70,11 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public void clearData() {
-
+    public void clearData() throws Exception {
+        var statements = new String[]{"TRUNCATE user", "TRUNCATE game", "TRUNCATE auth"};
+        for(var statement : statements) {
+            executeUpdate(statement);
+        }
     }
 
     @Override

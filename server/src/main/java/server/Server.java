@@ -86,7 +86,7 @@ public class Server {
         ctx.result(serializer.toJson(res));
     }
 
-    private void clear(Context ctx) {
+    private void clear(Context ctx) throws Exception {
         if(service != null) {
             service.clear();
         }

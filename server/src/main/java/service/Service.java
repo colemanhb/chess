@@ -87,7 +87,7 @@ public class Service {
         dataAccess.addPlayerToGame(joinGameRequest.authToken(), joinGameRequest.playerColor(), joinGameRequest.gameID());
     }
 
-    public void clear() {
+    public void clear() throws Exception {
         dataAccess.clearData();
     }
 

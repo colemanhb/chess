@@ -8,9 +8,9 @@ import model.UserData;
 import java.util.ArrayList;
 
 public interface DataAccess {
-    void saveUser(UserData userData);
+    void saveUser(UserData userData) throws Exception;
     UserData getUser(String username) throws DataAccessException;
-    void clearData();
+    void clearData() throws Exception;
     boolean findAuth(String authKey);
     void deleteAuth(String authKey);
     void addAuth(AuthData authData);
