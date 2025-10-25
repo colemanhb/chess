@@ -13,7 +13,8 @@ public class ServiceException extends Exception {
         NotLoggedInError,
         GameNotFoundError,
         BadRequestError,
-        ColorNotAvailableError
+        ServerError,
+        ColorNotAvailableError,
     }
 
     final private Code code;
@@ -31,6 +32,7 @@ public class ServiceException extends Exception {
             case AlreadyTakenError, ColorNotAvailableError -> 403;
             case BadRequestError -> 400;
             case NotFoundError, IncorrectPasswordError, NotLoggedInError, GameNotFoundError -> 401;
+            case ServerError -> 402;
         };
     }
 }

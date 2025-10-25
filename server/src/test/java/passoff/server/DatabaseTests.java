@@ -33,9 +33,7 @@ public class DatabaseTests {
     }
 
     @BeforeEach
-    public void setUp() {
-        serverFacade.clear();
-    }
+    public void setUp() {serverFacade.clear();}
 
     @AfterAll
     static void stopServer() {

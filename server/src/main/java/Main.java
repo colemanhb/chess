@@ -1,5 +1,6 @@
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
+import dataaccess.MySqlDataAccess;
 import server.Server;
 import service.Service;
 
@@ -11,12 +12,14 @@ public class Main {
                 port = Integer.parseInt(args[0]);
             }
             DataAccess dataAccess = new MemoryDataAccess();
+            if (args.length >= 2 && args[1].equals("sql")) {
+                dataAccess = new MySqlDataAccess();
+            }
 
-            var service = new Service(dataAccess);
-            var server = new Server().run(port);
-            port = server;
+            //var service = new Service(dataAccess);
+            port = new Server().run(port);
             System.out.printf("♕ 240 Chess Server: started on part %d with %s%n", port, dataAccess.getClass());
-            return;
+            //return;
         } catch (Throwable ex) {
             System.out.printf("Unable to start server: %s%n", ex.getMessage());
         }

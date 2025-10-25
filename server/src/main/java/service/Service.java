@@ -64,7 +64,7 @@ public class Service {
             throw new ServiceException("Error: Bad request", ServiceException.Code.BadRequestError);
         }
         checkAuthorization(new AuthorizationRequest(createGameRequest.authToken()));
-        dataAccess.createGame(createGameRequest.gameName(), currentGameID);
+        dataAccess.createGame(createGameRequest.gameName());
         currentGameID ++;
         //System.out.println(currentGameID - 1);
         return new CreateGameResult(currentGameID - 1);
