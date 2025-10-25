@@ -1,14 +1,20 @@
 package dataaccess;
 
+import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class DAOTests {
-    @BeforeEach
-    public void setup() {
+    @Test
+    public void setup() throws Exception {
+        var dataAccess = new MySqlDataAccess();
+    }
 
+    @Test
+    public void clearSuccess() throws Exception {
+        var dataAccess = new MySqlDataAccess();
+        dataAccess.clearData();
     }
 
     @Test
@@ -21,5 +27,27 @@ public class DAOTests {
         Assertions.assertNotNull(readUser);
         Assertions.assertEquals("this@gmail.com",readUser.email());
     }
+
+    @Test
+    public void addAuthSuccess() throws Exception {
+        var dataAccess = new MySqlDataAccess();
+        dataAccess.clearData();
+        var writeAuth = new AuthData("token", "coleman");
+        dataAccess.addAuth(writeAuth);
+        Assertions.assertTrue(dataAccess.findAuth("token"));
+    }
+
+    /*
+    saveUserFail
+    getUserSuccess
+    getUserFail
+    findAuth
+    deleteAuth
+    addAuthFailure
+    listGames
+    createGame
+    getGame
+    addPlayerToGame
+     */
 
 }

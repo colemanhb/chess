@@ -18,6 +18,7 @@ import static java.sql.Types.NULL;
 public class MySqlDataAccess implements DataAccess{
 
     public MySqlDataAccess() throws Exception {
+        deconstructDatabase();
         configureDatabase();
     }
 
@@ -79,6 +80,19 @@ public class MySqlDataAccess implements DataAccess{
 
     @Override
     public boolean findAuth(String authKey) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT authToken, username FROM auth WHERE authToken=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1,authKey);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if(rs.next()) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return false;
     }
 
@@ -88,8 +102,9 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public void addAuth(AuthData authData) {
-
+    public void addAuth(AuthData authData) throws Exception {
+        var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
+        executeUpdate(statement, authData.authToken(), authData.username());
     }
 
     @Override
@@ -165,6 +180,13 @@ public class MySqlDataAccess implements DataAccess{
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
           """
     };
+
+    private void deconstructDatabase() throws Exception {
+        var statements = new String[]{"DROP TABLE IF EXISTS user", "DROP TABLE IF EXISTS game", "DROP TABLE IF EXISTS auth"};
+        for(var statement : statements) {
+            executeUpdate(statement);
+        }
+    }
 
     private void configureDatabase() throws Exception {
         DatabaseManager.createDatabase();

@@ -13,7 +13,7 @@ public interface DataAccess {
     void clearData() throws Exception;
     boolean findAuth(String authKey);
     void deleteAuth(String authKey);
-    void addAuth(AuthData authData);
+    void addAuth(AuthData authData) throws Exception;
     ArrayList<GameData> listGames();
     void createGame(String gameName);
     GameData getGame(int gameID);
