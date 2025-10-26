@@ -63,6 +63,16 @@ public class DAOTests {
         Assertions.assertNotNull(games);
     }
 
+    @Test
+    public void getGameSuccess() throws Exception {
+        var dataAccess = new MySqlDataAccess();
+        dataAccess.clearData();
+        int gameID = dataAccess.createGame("first game");
+        var game = dataAccess.getGame(gameID);
+        Assertions.assertNotNull(game);
+        Assertions.assertEquals("first game", game.gameName());
+    }
+
     /*
     saveUserFail
     getUserSuccess
@@ -70,8 +80,8 @@ public class DAOTests {
     findAuth
     deleteAuthFailure
     addAuthFailure
-    listGames
-    createGame
+    listGamesFailure
+    createGameFailure
     getGame
     addPlayerToGame
      */

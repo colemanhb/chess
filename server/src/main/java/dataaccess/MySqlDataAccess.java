@@ -140,11 +140,11 @@ public class MySqlDataAccess implements DataAccess{
     public ArrayList<GameData> listGames() {
         var res = new ArrayList<GameData>();
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT gameData FROM game";
+            var statement = "SELECT gameJson FROM game";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 try (ResultSet rs = ps.executeQuery()) {
                     while(rs.next()) {
-                        String gameJson = rs.getString("gameData");
+                        String gameJson = rs.getString("gameJson");
                         GameData game = new Gson().fromJson(gameJson, GameData.class);
                         res.add(game);
                     }
@@ -158,14 +158,30 @@ public class MySqlDataAccess implements DataAccess{
 
     @Override
     public int createGame(String gameName) throws Exception {
-        var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, gameData) VALUES (?, ?, ?, ?)";
+        var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, gameJson) VALUES (?, ?, ?, ?)";
         var game = new ChessGame();
         String gameJson = new Gson().toJson(game);
         return executeUpdateGetID(statement, null, null, gameName, gameJson);
     }
 
     @Override
-    public GameData getGame(int gameID) {
+    public GameData getGame(int gameID){
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT gameName, gameJson FROM game WHERE gameID=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setInt(1, gameID);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        String gameName = rs.getString("gameName");
+                        String gameJson = rs.getString("gameJson");
+                        var game = new Gson().fromJson(gameJson, ChessGame.class);
+                        return new GameData(gameID, null, null, gameName, game);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return null;
     }
 
@@ -212,7 +228,7 @@ public class MySqlDataAccess implements DataAccess{
             whiteUsername varchar(100),
             blackUsername varchar(100),
             gameName varchar(100) NOT NULL,
-            gameData TEXT DEFAULT NULL,
+            gameJson TEXT DEFAULT NULL,
             PRIMARY KEY(gameID)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
           """
