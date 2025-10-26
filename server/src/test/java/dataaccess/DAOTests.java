@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 public class DAOTests {
     @Test
     public void setup() throws Exception {
-        var dataAccess = new MySqlDataAccess();
+        //var dataAccess = new MySqlDataAccess();
     }
 
     @Test
@@ -37,12 +37,22 @@ public class DAOTests {
         Assertions.assertTrue(dataAccess.findAuth("token"));
     }
 
+    @Test
+    public void deleteAuthSuccess() throws Exception {
+        var dataAccess = new MySqlDataAccess();
+        dataAccess.clearData();
+        var writeAuth = new AuthData("token", "coleman");
+        dataAccess.addAuth(writeAuth);
+        dataAccess.deleteAuth("token");
+        Assertions.assertFalse(dataAccess.findAuth("token"));
+    }
+
     /*
     saveUserFail
     getUserSuccess
     getUserFail
     findAuth
-    deleteAuth
+    deleteAuthFailure
     addAuthFailure
     listGames
     createGame
