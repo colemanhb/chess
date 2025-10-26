@@ -1,16 +1,14 @@
 package dataaccess;
 
 import chess.ChessGame;
+import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
 import service.ServiceException;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 
 import static java.sql.Types.NULL;
@@ -39,6 +37,29 @@ public class MySqlDataAccess implements DataAccess{
                     else if (param == null) ps.setNull(i + 1, NULL);
                 }
                 ps.executeUpdate();
+            }
+        } catch (Exception e) {
+            //throw new DataBaseException(ResponseException.Code.ServerError, String.format("unable to update database: %s, %s", statement, e.getMessage()));
+            throw new DataAccessException(String.format("unable to update database: %s, %s", statement, e.getMessage()));
+        }
+    }
+
+    private int executeUpdateGetID(String statement, Object... params) throws Exception {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS)) {
+                for (int i = 0; i < params.length; i++) {
+                    Object param = params[i];
+                    if (param instanceof String p) ps.setString(i + 1, p);
+                    /*else if (param instanceof Integer p) ps.setInt(i + 1, p);
+                    else if (param instanceof PetType p) ps.setString(i + 1, p.toString());*/
+                    else if (param == null) ps.setNull(i + 1, NULL);
+                }
+                ps.executeUpdate();
+                ResultSet rs = ps.getGeneratedKeys();
+                if(rs.next()) {
+                    return rs.getInt(1);
+                }
+                return 0;
             }
         } catch (Exception e) {
             //throw new DataBaseException(ResponseException.Code.ServerError, String.format("unable to update database: %s, %s", statement, e.getMessage()));
@@ -117,12 +138,30 @@ public class MySqlDataAccess implements DataAccess{
 
     @Override
     public ArrayList<GameData> listGames() {
-        return null;
+        var res = new ArrayList<GameData>();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT gameData FROM game";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while(rs.next()) {
+                        String gameJson = rs.getString("gameData");
+                        GameData game = new Gson().fromJson(gameJson, GameData.class);
+                        res.add(game);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return res;
     }
 
     @Override
-    public void createGame(String gameName) {
-
+    public int createGame(String gameName) throws Exception {
+        var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, gameData) VALUES (?, ?, ?, ?)";
+        var game = new ChessGame();
+        String gameJson = new Gson().toJson(game);
+        return executeUpdateGetID(statement, null, null, gameName, gameJson);
     }
 
     @Override
@@ -173,7 +212,7 @@ public class MySqlDataAccess implements DataAccess{
             whiteUsername varchar(100),
             blackUsername varchar(100),
             gameName varchar(100) NOT NULL,
-            game TEXT DEFAULT NULL,
+            gameData TEXT DEFAULT NULL,
             PRIMARY KEY(gameID)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
           """

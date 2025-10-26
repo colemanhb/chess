@@ -47,6 +47,22 @@ public class DAOTests {
         Assertions.assertFalse(dataAccess.findAuth("token"));
     }
 
+    @Test
+    public void listGamesSuccess() throws Exception {
+        var dataAccess = new MySqlDataAccess();
+        dataAccess.clearData();
+        dataAccess.listGames();
+    }
+
+    @Test
+    public void createGameSuccess() throws Exception {
+        var dataAccess = new MySqlDataAccess();
+        dataAccess.clearData();
+        dataAccess.createGame("first game");
+        var games = dataAccess.listGames();
+        Assertions.assertNotNull(games);
+    }
+
     /*
     saveUserFail
     getUserSuccess

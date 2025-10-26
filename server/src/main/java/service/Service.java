@@ -8,10 +8,8 @@ import java.util.UUID;
 
 public class Service {
     private final DataAccess dataAccess;
-    private int currentGameID;
     public Service(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
-        currentGameID = 1;
     }
 
     public LoginResult register(RegisterRequest registerRequest) throws Exception {
@@ -64,10 +62,9 @@ public class Service {
             throw new ServiceException("Error: Bad request", ServiceException.Code.BadRequestError);
         }
         checkAuthorization(new AuthorizationRequest(createGameRequest.authToken()));
-        dataAccess.createGame(createGameRequest.gameName());
-        currentGameID ++;
+        var gameID = dataAccess.createGame(createGameRequest.gameName());
         //System.out.println(currentGameID - 1);
-        return new CreateGameResult(currentGameID - 1);
+        return new CreateGameResult(gameID);
     }
 
     public void joinGame(JoinGameRequest joinGameRequest) throws Exception{
