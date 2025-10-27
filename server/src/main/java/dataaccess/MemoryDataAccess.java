@@ -23,8 +23,13 @@ public class MemoryDataAccess implements DataAccess{
         return users.get(username);
     }
 
-    public boolean findAuth(String authKey) {
-        return auths.containsKey(authKey);
+    public String findAuth(String authKey) {
+        if(auths.get(authKey) == null) {
+            return null;
+        }
+        else {
+            return auths.get(authKey).username();
+        }
     }
 
     public void deleteAuth(String authKey) {

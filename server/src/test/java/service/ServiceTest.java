@@ -101,7 +101,7 @@ public class ServiceTest {
         var regResult = userService.register(new RegisterRequest("cow","rat","john"));
         var authToken = regResult.authToken();
         userService.logout(new AuthorizationRequest(authToken));
-        Assertions.assertFalse(dataAccess.findAuth(authToken));
+        Assertions.assertNull(dataAccess.findAuth(authToken));
     }
 
     @Test

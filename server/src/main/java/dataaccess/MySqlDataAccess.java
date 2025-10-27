@@ -31,10 +31,15 @@ public class MySqlDataAccess implements DataAccess{
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 for (int i = 0; i < params.length; i++) {
                     Object param = params[i];
-                    if (param instanceof String p) ps.setString(i + 1, p);
-                    /*else if (param instanceof Integer p) ps.setInt(i + 1, p);
-                    else if (param instanceof PetType p) ps.setString(i + 1, p.toString());*/
-                    else if (param == null) ps.setNull(i + 1, NULL);
+                    switch (param) {
+                        case String p -> ps.setString(i + 1, p);
+                        case Integer p -> ps.setInt(i + 1, p);
+
+                        //else if (param instanceof PetType p) ps.setString(i + 1, p.toString());
+                        case null -> ps.setNull(i + 1, NULL);
+                        default -> {
+                        }
+                    }
                 }
                 ps.executeUpdate();
             }
@@ -100,21 +105,21 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public boolean findAuth(String authKey) {
+    public String findAuth(String authKey) {
         try (Connection conn = DatabaseManager.getConnection()) {
             var statement = "SELECT authToken, username FROM auth WHERE authToken=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                ps.setString(1,authKey);
+                ps.setString(1, authKey);
                 try (ResultSet rs = ps.executeQuery()) {
-                    if(rs.next()) {
-                        return true;
+                    if (rs.next()) {
+                        return rs.getString("username");
                     }
                 }
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return false;
+        return null;
     }
 
     @Override
@@ -167,15 +172,17 @@ public class MySqlDataAccess implements DataAccess{
     @Override
     public GameData getGame(int gameID){
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT gameName, gameJson FROM game WHERE gameID=?";
+            var statement = "SELECT whiteUsername, blackUsername, gameName, gameJson FROM game WHERE gameID=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setInt(1, gameID);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
+                        String whiteUsername = rs.getString("whiteUsername");
+                        String blackUsername = rs.getString("blackUsername");
                         String gameName = rs.getString("gameName");
                         String gameJson = rs.getString("gameJson");
                         var game = new Gson().fromJson(gameJson, ChessGame.class);
-                        return new GameData(gameID, null, null, gameName, game);
+                        return new GameData(gameID, whiteUsername, blackUsername, gameName, game);
                     }
                 }
             }
@@ -186,8 +193,15 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public void addPlayerToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) {
-
+    public void addPlayerToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws Exception {
+        var username = findAuth(authToken);
+        var statement = "";
+        if(playerColor == ChessGame.TeamColor.BLACK) {
+            statement = "UPDATE game SET blackUsername=? WHERE gameID=?";
+        } else if (playerColor == ChessGame.TeamColor.WHITE) {
+            statement = "UPDATE game SET whiteUsername=? WHERE gameID=?";
+        }
+        executeUpdate(statement, username, gameID);
     }
 
     String hashPassword(String clearTextPassword) {

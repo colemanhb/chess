@@ -1,5 +1,6 @@
 package dataaccess;
 
+import chess.ChessGame;
 import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
@@ -34,7 +35,7 @@ public class DAOTests {
         dataAccess.clearData();
         var writeAuth = new AuthData("token", "coleman");
         dataAccess.addAuth(writeAuth);
-        Assertions.assertTrue(dataAccess.findAuth("token"));
+        Assertions.assertNotNull(dataAccess.findAuth("token"));
     }
 
     @Test
@@ -44,7 +45,7 @@ public class DAOTests {
         var writeAuth = new AuthData("token", "coleman");
         dataAccess.addAuth(writeAuth);
         dataAccess.deleteAuth("token");
-        Assertions.assertFalse(dataAccess.findAuth("token"));
+        Assertions.assertNull(dataAccess.findAuth("token"));
     }
 
     @Test
@@ -73,6 +74,17 @@ public class DAOTests {
         Assertions.assertEquals("first game", game.gameName());
     }
 
+    @Test
+    public void addPlayerToGameSuccess() throws Exception {
+        var dataAccess = new MySqlDataAccess();
+        dataAccess.clearData();
+        int gameID = dataAccess.createGame("first game");
+        dataAccess.addAuth(new AuthData("token", "username"));
+        dataAccess.addPlayerToGame("token", ChessGame.TeamColor.BLACK, gameID);
+        var game = dataAccess.getGame(gameID);
+        Assertions.assertEquals("username", game.blackUsername());
+    }
+
     /*
     saveUserFail
     getUserSuccess
@@ -82,7 +94,7 @@ public class DAOTests {
     addAuthFailure
     listGamesFailure
     createGameFailure
-    getGame
+    getGameFailure
     addPlayerToGame
      */
 

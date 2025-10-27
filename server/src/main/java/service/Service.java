@@ -97,7 +97,7 @@ public class Service {
             throw new ServiceException("Error: Bad request", ServiceException.Code.BadRequestError);
         }
         //System.out.println("Looking for authKey" + authorizationRequest.authToken());
-        if(!dataAccess.findAuth(authorizationRequest.authToken())) {
+        if(dataAccess.findAuth(authorizationRequest.authToken()) == null) {
             //System.out.println("Didn't find it");
             throw new ServiceException("Error: AuthToken not found", ServiceException.Code.NotLoggedInError);
         }
