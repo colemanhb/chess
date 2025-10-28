@@ -6,7 +6,6 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
-import service.ServiceException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -21,12 +20,12 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public void saveUser(UserData userData) throws Exception {
+    public void saveUser(UserData userData) throws DataAccessException {
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
         executeUpdate(statement, userData.username(), hashPassword(userData.password()), userData.email());
     }
 
-    private void executeUpdate(String statement, Object... params) throws Exception {
+    private void executeUpdate(String statement, Object... params) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 for (int i = 0; i < params.length; i++) {
@@ -49,7 +48,7 @@ public class MySqlDataAccess implements DataAccess{
         }
     }
 
-    private int executeUpdateGetID(String statement, Object... params) throws Exception {
+    private int executeUpdateGetID(String statement, Object... params) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS)) {
                 for (int i = 0; i < params.length; i++) {
@@ -136,7 +135,7 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public void addAuth(AuthData authData) throws Exception {
+    public void addAuth(AuthData authData) throws DataAccessException {
         var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
         executeUpdate(statement, authData.authToken(), authData.username());
     }
@@ -162,7 +161,7 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public int createGame(String gameName) throws Exception {
+    public int createGame(String gameName) throws DataAccessException {
         var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, gameJson) VALUES (?, ?, ?, ?)";
         var game = new ChessGame();
         String gameJson = new Gson().toJson(game);
@@ -193,7 +192,7 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public void addPlayerToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws Exception {
+    public void addPlayerToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException {
         var username = findAuth(authToken);
         var statement = "";
         if(playerColor == ChessGame.TeamColor.BLACK) {
@@ -258,14 +257,14 @@ public class MySqlDataAccess implements DataAccess{
           """
     };
 
-    private void deconstructDatabase() throws Exception {
+    private void deconstructDatabase() throws DataAccessException {
         var statements = new String[]{"DROP TABLE IF EXISTS user", "DROP TABLE IF EXISTS game", "DROP TABLE IF EXISTS auth"};
         for(var statement : statements) {
             executeUpdate(statement);
         }
     }
 
-    private void configureDatabase() throws Exception {
+    private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
         try (Connection conn = DatabaseManager.getConnection()) {
             var tableStatements = new String[][]{createUserTable, createGameTable, createAuthTable};
@@ -277,7 +276,7 @@ public class MySqlDataAccess implements DataAccess{
                 }
             }
         } catch (SQLException ex) {
-            throw new ServiceException(String.format("Unable to configure database: %s", ex.getMessage()), ServiceException.Code.ServerError);
+            throw new DataAccessException(String.format("Unable to configure database: %s", ex.getMessage()));
         }
     }
 }
