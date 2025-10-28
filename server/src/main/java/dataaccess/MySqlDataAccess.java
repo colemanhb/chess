@@ -5,8 +5,6 @@ import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
-import org.mindrot.jbcrypt.BCrypt;
-
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -22,7 +20,7 @@ public class MySqlDataAccess implements DataAccess{
     @Override
     public void saveUser(UserData userData) throws DataAccessException {
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
-        executeUpdate(statement, userData.username(), hashPassword(userData.password()), userData.email());
+        executeUpdate(statement, userData.username(), userData.password(), userData.email());
     }
 
     private void executeUpdate(String statement, Object... params) throws DataAccessException {
@@ -202,24 +200,6 @@ public class MySqlDataAccess implements DataAccess{
         }
         executeUpdate(statement, username, gameID);
     }
-
-    String hashPassword(String clearTextPassword) {
-        return BCrypt.hashpw(clearTextPassword, BCrypt.gensalt());
-    }
-
-    /*void storeUserPassword(String username, String clearTextPassword) {
-        String hashedPassword = BCrypt.hashpw(clearTextPassword, BCrypt.gensalt());
-
-        // write the hashed password in database along with the user's other information
-        writeHashedPasswordToDatabase(username, hashedPassword);
-    }*/
-
-    /*boolean verifyUser(String username, String providedClearTextPassword) {
-        // read the previously hashed password from the database
-        var hashedPassword = readHashedPasswordFromDatabase(username);
-
-        return BCrypt.checkpw(providedClearTextPassword, hashedPassword);
-    }*/
 
     private final String[] createUserTable = {
             """

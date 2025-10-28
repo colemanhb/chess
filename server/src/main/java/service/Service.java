@@ -1,9 +1,9 @@
 package service;
 
 import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
 import model.*;
-
-import java.util.Objects;
+import org.mindrot.jbcrypt.BCrypt;
 import java.util.UUID;
 
 public class Service {
@@ -18,7 +18,7 @@ public class Service {
         }
         var existingUser = dataAccess.getUser(registerRequest.username());
         if(existingUser == null) {
-            var userData = new UserData(registerRequest.username(), registerRequest.password(), registerRequest.email());
+            var userData = new UserData(registerRequest.username(), hashPassword(registerRequest.password()), registerRequest.email());
             dataAccess.saveUser(userData);
             String authToken = generateToken();
             dataAccess.addAuth(new AuthData(authToken, registerRequest.username()));
@@ -37,7 +37,7 @@ public class Service {
         if(existingUser == null) {
             throw new ServiceException("Error: Username not found", ServiceException.Code.NotFoundError);
         }
-        if(!Objects.equals(existingUser.password(), loginRequest.password())) {
+        if(!verifyUser(loginRequest.username(), loginRequest.password())) {
             throw new ServiceException("Error: Password incorrect", ServiceException.Code.IncorrectPasswordError);
         }
         String authToken = generateToken();
@@ -102,5 +102,15 @@ public class Service {
             throw new ServiceException("Error: AuthToken not found", ServiceException.Code.NotLoggedInError);
         }
         //System.out.println("Found it!");
+    }
+
+    String hashPassword(String clearTextPassword) {
+        return BCrypt.hashpw(clearTextPassword, BCrypt.gensalt());
+    }
+
+    boolean verifyUser(String username, String providedClearTextPassword) throws DataAccessException {
+        // read the previously hashed password from the database
+        var hashedPassword = dataAccess.getUser(username).password();
+        return BCrypt.checkpw(providedClearTextPassword, hashedPassword);
     }
 }
