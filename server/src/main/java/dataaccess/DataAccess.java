@@ -9,8 +9,6 @@ import java.util.ArrayList;
 
 public interface DataAccess {
     void saveUser(UserData userData) throws Exception;
-    boolean userLoggedIn(String username) throws DataAccessException;
-    String authFromUsername(String username) throws DataAccessException;
     UserData getUser(String username) throws DataAccessException;
     void clearData() throws Exception;
     String findAuth(String authKey) throws Exception;

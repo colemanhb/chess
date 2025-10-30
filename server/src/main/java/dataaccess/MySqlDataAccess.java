@@ -23,30 +23,6 @@ public class MySqlDataAccess implements DataAccess{
         executeUpdate(statement, userData.username(), userData.password(), userData.email());
     }
 
-    @Override
-    public boolean userLoggedIn(String username) throws DataAccessException {
-        var authToken = authFromUsername(username);
-        return authToken != null;
-    }
-
-    @Override
-    public String authFromUsername(String username) throws DataAccessException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT authToken FROM auth WHERE username=?";
-            try(PreparedStatement ps = conn.prepareStatement(statement)) {
-                ps.setString(1,username);
-                try(ResultSet rs = ps.executeQuery()) {
-                    if(rs.next()) {
-                        return rs.getString("authToken");
-                    }
-                }
-            }
-        } catch (Exception e) {
-            throw new DataAccessException(String.format("Error: unable to connect to database %s", e.getMessage()));
-        }
-        return null;
-    }
-
     private void executeUpdate(String statement, Object... params) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
@@ -164,18 +140,6 @@ public class MySqlDataAccess implements DataAccess{
 
     @Override
     public void addAuth(AuthData authData) throws Exception {
-        /*var currentUser = getUser(authData.username());
-        var loggedIn = false;
-        if(currentUser != null) {
-            loggedIn = authFromUsername(currentUser.username()) != null;
-        }
-        var statement = "";
-        if(loggedIn) {
-            statement = "UPDATE auth SET authToken=? WHERE username=?";
-        }
-        else {
-            statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
-        }*/
         var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
         executeUpdate(statement, authData.authToken(), authData.username());
 
@@ -290,12 +254,12 @@ public class MySqlDataAccess implements DataAccess{
           """
     };
 
-    private void deconstructDatabase() throws DataAccessException {
+    /*private void deconstructDatabase() throws DataAccessException {
         var statements = new String[]{"DROP TABLE IF EXISTS user", "DROP TABLE IF EXISTS game", "DROP TABLE IF EXISTS auth"};
         for(var statement : statements) {
             executeUpdate(statement);
         }
-    }
+    }*/
 
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();

@@ -115,10 +115,10 @@ public class DAOTests {
     public void deleteAuthFailure() throws Exception {
         var dataAccess = new MySqlDataAccess();
         dataAccess.clearData();
-        var starting_length = dataAccess.listGames().size();
+        var startingLength = dataAccess.listGames().size();
         dataAccess.deleteAuth("nonexistent");
-        var ending_length = dataAccess.listGames().size();
-        Assertions.assertEquals(starting_length, ending_length);
+        var endingLength = dataAccess.listGames().size();
+        Assertions.assertEquals(startingLength, endingLength);
     }
 
     @Test
@@ -191,7 +191,7 @@ public class DAOTests {
     }
 
     @Test
-    public void AddPlayerToGameFailure() throws Exception {
+    public void addPlayerToGameFailure() throws Exception {
         var dataAccess = new MySqlDataAccess();
         dataAccess.clearData();
         int gameID = dataAccess.createGame("first game");
@@ -201,7 +201,7 @@ public class DAOTests {
     }
 
     @Test
-    public void Debugging() throws Exception {
+    public void debugging() throws Exception {
         var dataAccess = new MySqlDataAccess();
         dataAccess.clearData();
 

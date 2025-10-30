@@ -19,23 +19,6 @@ public class MemoryDataAccess implements DataAccess{
     }
 
     @Override
-    public boolean userLoggedIn(String username) {
-        var authKey = authFromUsername(username);
-        return auths.containsKey(authKey);
-    }
-
-    @Override
-    public String authFromUsername(String username) {
-        for (var authKey : auths.keySet()) {
-            var AuthData = auths.get(authKey);
-            if(AuthData.username().equals(username)) {
-                return authKey;
-            }
-        }
-        return null;
-    }
-
-    @Override
     public UserData getUser(String username) {
         return users.get(username);
     }
