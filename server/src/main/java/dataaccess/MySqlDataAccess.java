@@ -13,7 +13,6 @@ import static java.sql.Types.NULL;
 public class MySqlDataAccess implements DataAccess{
 
     public MySqlDataAccess() throws Exception {
-        //deconstructDatabase();
         configureDatabase();
     }
 
@@ -34,14 +33,12 @@ public class MySqlDataAccess implements DataAccess{
 
                         //else if (param instanceof PetType p) ps.setString(i + 1, p.toString());
                         case null -> ps.setNull(i + 1, NULL);
-                        default -> {
-                        }
+                        default -> throw new IllegalStateException("Unexpected value: " + param);
                     }
                 }
                 ps.executeUpdate();
             }
         } catch (Exception e) {
-            //throw new DataBaseException(ResponseException.Code.ServerError, String.format("unable to update database: %s, %s", statement, e.getMessage()));
             throw new DataAccessException(String.format("Error: unable to update database: %s, %s", statement, e.getMessage()));
         }
     }
@@ -51,10 +48,12 @@ public class MySqlDataAccess implements DataAccess{
             try (PreparedStatement ps = conn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS)) {
                 for (int i = 0; i < params.length; i++) {
                     Object param = params[i];
-                    if (param instanceof String p) ps.setString(i + 1, p);
-                    /*else if (param instanceof Integer p) ps.setInt(i + 1, p);
-                    else if (param instanceof PetType p) ps.setString(i + 1, p.toString());*/
-                    else if (param == null) ps.setNull(i + 1, NULL);
+                    if (param instanceof String p) {
+                        ps.setString(i + 1, p);
+                    }
+                    else if (param == null) {
+                        ps.setNull(i + 1, NULL);
+                    }
                 }
                 ps.executeUpdate();
                 ResultSet rs = ps.getGeneratedKeys();
@@ -64,7 +63,6 @@ public class MySqlDataAccess implements DataAccess{
                 return 0;
             }
         } catch (Exception e) {
-            //throw new DataBaseException(ResponseException.Code.ServerError, String.format("unable to update database: %s, %s", statement, e.getMessage()));
             throw new DataAccessException(String.format("Error: unable to update database: %s, %s", statement, e.getMessage()));
         }
     }
@@ -253,13 +251,6 @@ public class MySqlDataAccess implements DataAccess{
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
           """
     };
-
-    /*private void deconstructDatabase() throws DataAccessException {
-        var statements = new String[]{"DROP TABLE IF EXISTS user", "DROP TABLE IF EXISTS game", "DROP TABLE IF EXISTS auth"};
-        for(var statement : statements) {
-            executeUpdate(statement);
-        }
-    }*/
 
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
