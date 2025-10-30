@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
-
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -25,13 +24,13 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public boolean userLoggedIn(String username){
+    public boolean userLoggedIn(String username) throws DataAccessException {
         var authToken = authFromUsername(username);
         return authToken != null;
     }
 
     @Override
-    public String authFromUsername(String username) {
+    public String authFromUsername(String username) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             var statement = "SELECT authToken FROM auth WHERE username=?";
             try(PreparedStatement ps = conn.prepareStatement(statement)) {
@@ -42,8 +41,8 @@ public class MySqlDataAccess implements DataAccess{
                     }
                 }
             }
-        } catch (SQLException | DataAccessException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Error: unable to connect to database %s", e.getMessage()));
         }
         return null;
     }
@@ -67,7 +66,7 @@ public class MySqlDataAccess implements DataAccess{
             }
         } catch (Exception e) {
             //throw new DataBaseException(ResponseException.Code.ServerError, String.format("unable to update database: %s, %s", statement, e.getMessage()));
-            throw new DataAccessException(String.format("unable to update database: %s, %s", statement, e.getMessage()));
+            throw new DataAccessException(String.format("Error: unable to update database: %s, %s", statement, e.getMessage()));
         }
     }
 
@@ -90,7 +89,7 @@ public class MySqlDataAccess implements DataAccess{
             }
         } catch (Exception e) {
             //throw new DataBaseException(ResponseException.Code.ServerError, String.format("unable to update database: %s, %s", statement, e.getMessage()));
-            throw new DataAccessException(String.format("unable to update database: %s, %s", statement, e.getMessage()));
+            throw new DataAccessException(String.format("Error: unable to update database: %s, %s", statement, e.getMessage()));
         }
     }
 
@@ -106,20 +105,25 @@ public class MySqlDataAccess implements DataAccess{
                     }
                 }
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Error: unable to update database: %s", e.getMessage()));
         }
         return null;
     }
-    private UserData readUser(ResultSet rs) throws SQLException {
-        var username = rs.getString("username");
-        var password = rs.getString("password");
-        var email = rs.getString("email");
-        return new UserData(username, password, email);
+    private UserData readUser(ResultSet rs) throws DataAccessException {
+        try {
+            var username = rs.getString("username");
+            var password = rs.getString("password");
+            var email = rs.getString("email");
+            return new UserData(username, password, email);
+        }
+        catch(SQLException e) {
+            throw new DataAccessException(String.format("Error: unable to update database: %s", e.getMessage()));
+        }
     }
 
     @Override
-    public void clearData() throws Exception {
+    public void clearData() throws DataAccessException {
         var statements = new String[]{"TRUNCATE user", "TRUNCATE game", "TRUNCATE auth"};
         for(var statement : statements) {
             executeUpdate(statement);
@@ -127,7 +131,7 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public String findAuth(String authKey) {
+    public String findAuth(String authKey) throws Exception{
         try (Connection conn = DatabaseManager.getConnection()) {
             var statement = "SELECT authToken, username FROM auth WHERE authToken=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
@@ -138,14 +142,15 @@ public class MySqlDataAccess implements DataAccess{
                     }
                 }
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        }
+        catch(Exception e) {
+            throw new DataAccessException(String.format("Error: unable to update database: %s", e.getMessage()));
         }
         return null;
     }
 
     @Override
-    public void deleteAuth(String authKey) {
+    public void deleteAuth(String authKey) throws DataAccessException{
         try (Connection conn = DatabaseManager.getConnection()) {
             var statement = "DELETE from auth WHERE authToken=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
@@ -153,12 +158,12 @@ public class MySqlDataAccess implements DataAccess{
                 ps.executeUpdate();
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new DataAccessException(String.format("Error: unable to update database: %s", e.getMessage()));
         }
     }
 
     @Override
-    public void addAuth(AuthData authData) throws DataAccessException {
+    public void addAuth(AuthData authData) throws Exception {
         String currentUser = findAuth(authData.authToken());
         var statement = "";
         if(currentUser == null) {
@@ -168,7 +173,7 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public ArrayList<GameData> listGames() {
+    public ArrayList<GameData> listGames() throws DataAccessException{
         var res = new ArrayList<GameData>();
         try (Connection conn = DatabaseManager.getConnection()) {
             var statement = "SELECT gameJson FROM game";
@@ -181,8 +186,8 @@ public class MySqlDataAccess implements DataAccess{
                     }
                 }
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch(Exception e) {
+            throw new DataAccessException(String.format("Error: unable to update database: %s", e.getMessage()));
         }
         return res;
     }
@@ -201,7 +206,7 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public GameData getGame(int gameID){
+    public GameData getGame(int gameID) throws DataAccessException{
         try (Connection conn = DatabaseManager.getConnection()) {
             var statement = "SELECT whiteUsername, blackUsername, gameName, gameJson FROM game WHERE gameID=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
@@ -218,13 +223,13 @@ public class MySqlDataAccess implements DataAccess{
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new DataAccessException(String.format("Error: unable to update database: %s", e.getMessage()));
         }
         return null;
     }
 
     @Override
-    public void addPlayerToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException {
+    public void addPlayerToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws Exception {
         var username = findAuth(authToken);
         var statement = "";
         var gameData = getGame(gameID);
@@ -293,8 +298,8 @@ public class MySqlDataAccess implements DataAccess{
                     }
                 }
             }
-        } catch (SQLException ex) {
-            throw new DataAccessException(String.format("Unable to configure database: %s", ex.getMessage()));
+        } catch (Exception ex) {
+            throw new DataAccessException(String.format("Error: Unable to configure database: %s", ex.getMessage()));
         }
     }
 }

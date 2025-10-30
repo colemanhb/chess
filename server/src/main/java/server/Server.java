@@ -2,6 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
 import dataaccess.MySqlDataAccess;
 import model.*;
@@ -11,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import service.Service;
 import service.ServiceException;
 
+import java.util.Map;
 public class Server {
 
     private final Javalin httpHandler;
@@ -34,7 +36,8 @@ public class Server {
                 .post("/game", this::createGame)
                 .put("/game", this::joinGame)
                 .delete("/db", this::clear)
-                .exception(ServiceException.class, this::exceptionHandler);
+                .exception(ServiceException.class, this::exceptionHandler)
+                .exception(DataAccessException.class, this::exceptionHandler);
     }
 
     private void joinGame(@NotNull Context ctx) throws Exception {
@@ -93,7 +96,7 @@ public class Server {
         ctx.result(serializer.toJson(res));
     }
 
-    private void clear(Context ctx) throws Exception {
+    private void clear(Context ctx) throws Exception{
         if(service != null) {
             service.clear();
         }
@@ -112,5 +115,9 @@ public class Server {
     private void exceptionHandler(ServiceException e, Context ctx) {
         ctx.status(e.toHttpStatusCode());
         ctx.json(e.toJson());
+    }
+    private void exceptionHandler(DataAccessException e, Context ctx) {
+        ctx.status(500);
+        ctx.json(new Gson().toJson(Map.of("message", e.getMessage())));
     }
 }
