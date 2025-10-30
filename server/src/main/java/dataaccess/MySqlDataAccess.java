@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -21,6 +22,30 @@ public class MySqlDataAccess implements DataAccess{
     public void saveUser(UserData userData) throws DataAccessException {
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
         executeUpdate(statement, userData.username(), userData.password(), userData.email());
+    }
+
+    @Override
+    public boolean userLoggedIn(String username){
+        var authToken = authFromUsername(username);
+        return authToken != null;
+    }
+
+    @Override
+    public String authFromUsername(String username) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT authToken FROM auth WHERE username=?";
+            try(PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1,username);
+                try(ResultSet rs = ps.executeQuery()) {
+                    if(rs.next()) {
+                        return rs.getString("authToken");
+                    }
+                }
+            }
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
     }
 
     private void executeUpdate(String statement, Object... params) throws DataAccessException {
@@ -134,8 +159,12 @@ public class MySqlDataAccess implements DataAccess{
 
     @Override
     public void addAuth(AuthData authData) throws DataAccessException {
-        var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
-        executeUpdate(statement, authData.authToken(), authData.username());
+        String currentUser = findAuth(authData.authToken());
+        var statement = "";
+        if(currentUser == null) {
+            statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
+            executeUpdate(statement, authData.authToken(), authData.username());
+        }
     }
 
     @Override

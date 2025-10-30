@@ -40,9 +40,16 @@ public class Service {
         if(!verifyUser(loginRequest.username(), loginRequest.password())) {
             throw new ServiceException("Error: Password incorrect", ServiceException.Code.IncorrectPasswordError);
         }
-        String authToken = generateToken();
-        dataAccess.addAuth(new AuthData(authToken, existingUser.username()));
-        return new LoginResult(existingUser.username(), authToken);
+        var authToken = "";
+        var username = existingUser.username();
+        if(dataAccess.userLoggedIn(username)) {
+            authToken = dataAccess.authFromUsername(username);
+        }
+        else {
+            authToken = generateToken();
+            dataAccess.addAuth(new AuthData(authToken, username));
+        }
+        return new LoginResult(username, authToken);
     }
 
     public void logout(AuthorizationRequest logoutRequest) throws Exception{
