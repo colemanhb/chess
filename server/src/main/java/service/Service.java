@@ -42,13 +42,8 @@ public class Service {
         }
         var authToken = "";
         var username = existingUser.username();
-        if(dataAccess.userLoggedIn(username)) {
-            authToken = dataAccess.authFromUsername(username);
-        }
-        else {
-            authToken = generateToken();
-            dataAccess.addAuth(new AuthData(authToken, username));
-        }
+        authToken = generateToken();
+        dataAccess.addAuth(new AuthData(authToken, username));
         return new LoginResult(username, authToken);
     }
 

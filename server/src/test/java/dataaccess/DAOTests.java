@@ -68,6 +68,7 @@ public class DAOTests {
         dataAccess.clearData();
         var writeAuth = new AuthData("token", "coleman");
         dataAccess.addAuth(writeAuth);
+        dataAccess.addAuth(new AuthData("token1", "coleman"));
         Assertions.assertNotNull(dataAccess.findAuth("token"));
     }
 

@@ -164,12 +164,21 @@ public class MySqlDataAccess implements DataAccess{
 
     @Override
     public void addAuth(AuthData authData) throws Exception {
-        String currentUser = findAuth(authData.authToken());
-        var statement = "";
-        if(currentUser == null) {
-            statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
-            executeUpdate(statement, authData.authToken(), authData.username());
+        /*var currentUser = getUser(authData.username());
+        var loggedIn = false;
+        if(currentUser != null) {
+            loggedIn = authFromUsername(currentUser.username()) != null;
         }
+        var statement = "";
+        if(loggedIn) {
+            statement = "UPDATE auth SET authToken=? WHERE username=?";
+        }
+        else {
+            statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
+        }*/
+        var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
+        executeUpdate(statement, authData.authToken(), authData.username());
+
     }
 
     @Override
@@ -273,9 +282,10 @@ public class MySqlDataAccess implements DataAccess{
     private final String[] createAuthTable = {
             """
             CREATE TABLE IF NOT EXISTS auth (
+            authID int NOT NULL AUTO_INCREMENT,
             authToken varchar(100) NOT NULL,
             username varchar(100) NOT NULL,
-            PRIMARY KEY(username)
+            PRIMARY KEY(authID)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
           """
     };
