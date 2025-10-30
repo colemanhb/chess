@@ -31,7 +31,7 @@ public class ServiceException extends Exception {
         return switch (code) {
             case AlreadyTakenError, ColorNotAvailableError -> 403;
             case BadRequestError -> 400;
-            case NotFoundError, IncorrectPasswordError, NotLoggedInError, GameNotFoundError -> 401;
+            case NotFoundError, IncorrectPasswordError, GameNotFoundError, NotLoggedInError -> 401;
             case ServerError -> 402;
         };
     }

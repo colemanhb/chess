@@ -3,6 +3,7 @@ package server;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
+import dataaccess.MySqlDataAccess;
 import model.*;
 import io.javalin.*;
 import io.javalin.http.Context;
@@ -16,7 +17,13 @@ public class Server {
     private final Service service;
 
     public Server() {
-        DataAccess dataAccess = new MemoryDataAccess();
+        DataAccess dataAccess;
+        try {
+            dataAccess = new MySqlDataAccess();
+        }
+        catch(Exception e) {
+            dataAccess = new MemoryDataAccess();
+        }
         service = new Service(dataAccess);
         httpHandler = Javalin.create(config -> config.staticFiles.add("web"))
         // Register your endpoints and exception handlers here.

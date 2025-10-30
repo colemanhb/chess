@@ -13,7 +13,7 @@ import static java.sql.Types.NULL;
 public class MySqlDataAccess implements DataAccess{
 
     public MySqlDataAccess() throws Exception {
-        deconstructDatabase();
+        //deconstructDatabase();
         configureDatabase();
     }
 
@@ -161,9 +161,14 @@ public class MySqlDataAccess implements DataAccess{
     @Override
     public int createGame(String gameName) throws DataAccessException {
         var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, gameJson) VALUES (?, ?, ?, ?)";
+        var gameJson = "";
+        var gameID =  executeUpdateGetID(statement, null, null, gameName, gameJson);
         var game = new ChessGame();
-        String gameJson = new Gson().toJson(game);
-        return executeUpdateGetID(statement, null, null, gameName, gameJson);
+        var gameData = new GameData(gameID,null,null,gameName,game);
+        gameJson = new Gson().toJson(gameData);
+        statement = "UPDATE game SET gameJson=? WHERE gameID=?";
+        executeUpdate(statement, gameJson, gameID);
+        return gameID;
     }
 
     @Override
@@ -193,12 +198,16 @@ public class MySqlDataAccess implements DataAccess{
     public void addPlayerToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException {
         var username = findAuth(authToken);
         var statement = "";
+        var gameData = getGame(gameID);
         if(playerColor == ChessGame.TeamColor.BLACK) {
-            statement = "UPDATE game SET blackUsername=? WHERE gameID=?";
+            statement = "UPDATE game SET blackUsername=?, gameJson=? WHERE gameID=?";
+            gameData = new GameData(gameID,gameData.whiteUsername(),username,gameData.gameName(),gameData.game());
         } else if (playerColor == ChessGame.TeamColor.WHITE) {
-            statement = "UPDATE game SET whiteUsername=? WHERE gameID=?";
+            statement = "UPDATE game SET whiteUsername=?, gameJson=? WHERE gameID=?";
+            gameData = new GameData(gameID,username,gameData.blackUsername(),gameData.gameName(),gameData.game());
         }
-        executeUpdate(statement, username, gameID);
+        var gameJson = new Gson().toJson(gameData);
+        executeUpdate(statement, username, gameJson, gameID);
     }
 
     private final String[] createUserTable = {

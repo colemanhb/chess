@@ -199,9 +199,10 @@ public class DAOTests {
         Assertions.assertNull(game.blackUsername());
     }
 
-    /*
-    getUserSuccess
-    getUserFail
-     */
+    @Test
+    public void Debugging() throws Exception {
+        var dataAccess = new MySqlDataAccess();
+        dataAccess.clearData();
 
+    }
 }
