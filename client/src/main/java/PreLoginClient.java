@@ -44,6 +44,7 @@ public class PreLoginClient {
             String cmd = (tokens.length >0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
+                case "l", "login" -> login(params);
                 case "r", "register" -> register(params);
                 case "q", "quit" -> "quit";
                 default -> help();
@@ -60,9 +61,20 @@ public class PreLoginClient {
             String password = params[1];
             String email = params[2];
             server.register(new model.RegisterRequest(username, password, email));
-            return String.format("You signed in as %s.", username);
+            return String.format("You registered as %s.", username);
         }
         throw new ServiceException("Expected: <USERNAME> <PASSWORD> <EMAIL>", ServiceException.Code.BadRequestError);
+    }
+
+    public String login(String... params) throws ServiceException {
+        if (params.length >= 2) {
+            state = State.LOGGEDIN;
+            String username = params[0];
+            String password = params[1];
+            server.login(new model.LoginRequest(username, password));
+            return String.format("You logged in as %s.", username);
+        }
+        throw new ServiceException("Expected: <USERNAME> <PASSWORD>", ServiceException.Code.BadRequestError);
     }
 
     public String help() {
