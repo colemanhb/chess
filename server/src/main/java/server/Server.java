@@ -23,7 +23,7 @@ public class Server {
         try {
             dataAccess = new MySqlDataAccess();
         }
-        catch(Exception e) {
+        catch(DataAccessException e) {
             dataAccess = new MemoryDataAccess();
         }
         service = new Service(dataAccess);

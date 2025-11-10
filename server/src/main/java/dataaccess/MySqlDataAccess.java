@@ -12,7 +12,7 @@ import static java.sql.Types.NULL;
 
 public class MySqlDataAccess implements DataAccess{
 
-    public MySqlDataAccess() throws Exception {
+    public MySqlDataAccess() throws DataAccessException {
         configureDatabase();
     }
 

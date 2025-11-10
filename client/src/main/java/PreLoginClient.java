@@ -1,4 +1,5 @@
 import server.ServerFacade;
+import service.ServiceException;
 
 import java.util.Arrays;
 import java.util.Scanner;
@@ -22,7 +23,6 @@ public class PreLoginClient {
         while (!result.equals("quit") && state.equals(State.LOGGEDOUT)) {
             printPrompt();
             String line = scanner.nextLine();
-
             try {
                 result = eval(line);
                 System.out.print(SET_TEXT_COLOR_BLUE + result);
@@ -44,12 +44,25 @@ public class PreLoginClient {
             String cmd = (tokens.length >0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
+                case "r", "register" -> register(params);
                 case "q", "quit" -> "quit";
                 default -> help();
             };
         } catch (Exception e) {
             return e.getMessage();
         }
+    }
+
+    public String register(String... params) throws ServiceException {
+        if (params.length >= 3) {
+            state = State.LOGGEDIN;
+            String username = params[0];
+            String password = params[1];
+            String email = params[2];
+            server.register(new model.RegisterRequest(username, password, email));
+            return String.format("You signed in as %s.", username);
+        }
+        throw new ServiceException("Expected: <USERNAME> <PASSWORD> <EMAIL>", ServiceException.Code.BadRequestError);
     }
 
     public String help() {
