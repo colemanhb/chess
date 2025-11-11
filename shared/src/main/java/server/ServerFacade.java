@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import model.ListGamesResult;
 import model.LoginRequest;
 import model.LoginResult;
 import model.RegisterRequest;
@@ -29,6 +30,12 @@ public class ServerFacade {
         var request = buildRequest("POST", "/session", loginRequest);
         var response = sendRequest(request);
         return handleResponse(response, LoginResult.class);
+    }
+
+    public ListGamesResult list() throws ServiceException {
+        var request = buildRequest("GET", "/game", null);
+        var response = sendRequest(request);
+        return handleResponse(response, ListGamesResult.class);
     }
 
     private HttpRequest buildRequest(String method, String path, Object body) {

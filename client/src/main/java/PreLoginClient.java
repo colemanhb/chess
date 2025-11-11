@@ -1,3 +1,4 @@
+import com.google.gson.Gson;
 import server.ServerFacade;
 import service.ServiceException;
 
@@ -67,7 +68,10 @@ public class PreLoginClient {
                     default -> help();
                 };
             } else if (state == State.LOGGEDIN) {
-                return help();
+                return switch (cmd) {
+                    case "l", "list" -> list(params);
+                    default -> help();
+                };
             }
             return "";
         } catch (Exception e) {
@@ -96,6 +100,16 @@ public class PreLoginClient {
             return String.format("You logged in as %s.", username);
         }
         throw new ServiceException("Expected: <USERNAME> <PASSWORD>", ServiceException.Code.BadRequestError);
+    }
+
+    public String list(String... params) throws ServiceException {
+        var games = server.list();
+        var result = new StringBuilder();
+        var gson = new Gson();
+        for(var game : games.games()) {
+            result.append(gson.toJson(game)).append('\n');
+        }
+        return result.toString();
     }
 
     public String help() {
