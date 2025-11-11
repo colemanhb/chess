@@ -14,10 +14,15 @@ public class PreLoginClient {
         server = new ServerFacade(serverUrl);
     }
 
-    public void run() {
-        System.out.println("♕ Welcome to Chess. Sign in to start.");
-        System.out.print(help());
+    public State getState() {
+        return state;
+    }
 
+    public void run() {
+        if(state == State.LOGGEDOUT) {
+            System.out.println("♕ Welcome to Chess. Sign in to start.");
+            System.out.print(help());
+        }
         Scanner scanner = new Scanner(System.in);
         var result = "";
         while (!result.equals("quit") && state.equals(State.LOGGEDOUT)) {
@@ -29,6 +34,17 @@ public class PreLoginClient {
             } catch (Throwable e) {
                 var msg = e.toString();
                 System.out.print(msg);
+            }
+        }
+        while (!result.equals("quit") && state.equals(State.LOGGEDIN)) {
+            printPrompt();
+            String line = scanner.nextLine();
+            try {
+                result = eval(line);
+                System.out.print(SET_TEXT_COLOR_BLUE + result);
+            } catch (Throwable e) {
+                var msg = e.toString();
+                System.out.println(msg);
             }
         }
         System.out.println();
@@ -43,12 +59,17 @@ public class PreLoginClient {
             String[] tokens = input.toLowerCase().split(" ");
             String cmd = (tokens.length >0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            return switch (cmd) {
-                case "l", "login" -> login(params);
-                case "r", "register" -> register(params);
-                case "q", "quit" -> "quit";
-                default -> help();
-            };
+            if(state == State.LOGGEDOUT) {
+                return switch (cmd) {
+                    case "l", "login" -> login(params);
+                    case "r", "register" -> register(params);
+                    case "q", "quit" -> "quit";
+                    default -> help();
+                };
+            } else if (state == State.LOGGEDIN) {
+                return help();
+            }
+            return "";
         } catch (Exception e) {
             return e.getMessage();
         }
@@ -78,12 +99,24 @@ public class PreLoginClient {
     }
 
     public String help() {
-        return """
-                Options:
-                Login as an existing user: “l”, “login” <USERNAME> <PASSWORD>
-                Register a new user: “r”, “register” <USERNAME> <PASSWORD> <EMAIL>
-                Exit the program: “q”, “quit”
-                Print this message: “h”, “help”
-                """;
+        if(state == State.LOGGEDOUT) {
+            return """
+                    Options:
+                    Login as an existing user: “l”, “login” <USERNAME> <PASSWORD>
+                    Register a new user: “r”, “register” <USERNAME> <PASSWORD> <EMAIL>
+                    Exit the program: “q”, “quit”
+                    Print this message: “h”, “help”
+                    """;
+        } else if (state == State.LOGGEDIN) {
+            return """
+                    Options:
+                    List current games: “l”, “list”
+                    Create a new game: “c”, “create” <GAME NAME>
+                    Join a game: “j”, “join” <GAME ID> <COLOR>
+                    Watch a game: “w”, “watch” <GAME ID>
+                    Logout: “logout”
+                    """;
+        }
+        return null;
     }
 }
