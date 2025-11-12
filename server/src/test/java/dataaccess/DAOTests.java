@@ -10,6 +10,13 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class DAOTests {
 
     @Test
+    public void resetSqlDatabase() throws DataAccessException {
+        var dataAccess = new MySqlDataAccess();
+        dataAccess.deconstructDatabase();
+        Assertions.assertTrue(true);
+    }
+
+    @Test
     public void getUserSuccess() throws Exception {
         var dataAccess = new MySqlDataAccess();
         dataAccess.clearData();

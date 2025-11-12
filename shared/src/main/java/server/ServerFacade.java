@@ -41,6 +41,11 @@ public class ServerFacade {
         return handleResponse(response, CreateGameResult.class);
     }
 
+    public void logout(AuthorizationRequest logoutRequest) throws ServiceException {
+        var request = buildRequest("DELETE", "/session", logoutRequest);
+        sendRequest(request);
+    }
+
     private HttpRequest buildRequest(String method, String path, Object body) {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))

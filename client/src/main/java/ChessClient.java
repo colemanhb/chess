@@ -7,17 +7,13 @@ import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
-public class PreLoginClient {
+public class ChessClient {
     private final ServerFacade server;
     private State state = State.LOGGEDOUT;
     private String authToken;
 
-    public PreLoginClient(String serverUrl) {
+    public ChessClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
-    }
-
-    public State getState() {
-        return state;
     }
 
     public void run() {
@@ -50,6 +46,9 @@ public class PreLoginClient {
             }
         }
         System.out.println();
+        if(!result.equals("quit")) {
+            run();
+        }
     }
 
     private void printPrompt() {
@@ -72,6 +71,7 @@ public class PreLoginClient {
                 return switch (cmd) {
                     case "l", "list" -> list();
                     case "c", "create" -> create(params);
+                    case "logout" -> logout();
                     default -> help();
                 };
             }
@@ -83,12 +83,12 @@ public class PreLoginClient {
 
     public String register(String... params) throws ServiceException {
         if (params.length >= 3) {
-            state = State.LOGGEDIN;
             String username = params[0];
             String password = params[1];
             String email = params[2];
             var registerData = server.register(new model.RegisterRequest(username, password, email));
             authToken = registerData.authToken();
+            state = State.LOGGEDIN;
             return String.format("You registered as %s.", username);
         }
         throw new ServiceException("Expected: <USERNAME> <PASSWORD> <EMAIL>", ServiceException.Code.BadRequestError);
@@ -96,11 +96,11 @@ public class PreLoginClient {
 
     public String login(String... params) throws ServiceException {
         if (params.length >= 2) {
-            state = State.LOGGEDIN;
             String username = params[0];
             String password = params[1];
             var loginData = server.login(new model.LoginRequest(username, password));
             authToken = loginData.authToken();
+            state = State.LOGGEDIN;
             return String.format("You logged in as %s.", username);
         }
         throw new ServiceException("Expected: <USERNAME> <PASSWORD>", ServiceException.Code.BadRequestError);
@@ -123,6 +123,12 @@ public class PreLoginClient {
             return String.format("Game started with ID %s.", gameData.gameID());
         }
         throw new ServiceException("Expected: <GAMENAME>", ServiceException.Code.BadRequestError);
+    }
+
+    public String logout() throws ServiceException {
+        server.logout(new model.AuthorizationRequest(authToken));
+        state = State.LOGGEDOUT;
+        return "Logout successful";
     }
 
     public String help() {

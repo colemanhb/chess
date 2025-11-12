@@ -267,4 +267,12 @@ public class MySqlDataAccess implements DataAccess{
             throw new DataAccessException(String.format("Error: Unable to configure database: %s", ex.getMessage()));
         }
     }
+
+    public void deconstructDatabase() throws DataAccessException {
+        var statements = new String[]{"DROP TABLE IF EXISTS user", "DROP TABLE IF EXISTS game", "DROP TABLE IF EXISTS auth"};
+        for(var statement : statements) {
+            executeUpdate(statement);
+        }
+    }
+
 }

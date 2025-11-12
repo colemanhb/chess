@@ -49,9 +49,7 @@ public class Service {
 
     public void logout(AuthorizationRequest logoutRequest) throws Exception{
         checkAuthorization(logoutRequest);
-        //System.out.println("Authorization found!" + logoutRequest.authToken());
         dataAccess.deleteAuth(logoutRequest.authToken());
-        //System.out.println("Authorization deleted!" + logoutRequest.authToken());
     }
 
     public ListGamesResult listGames(AuthorizationRequest listGamesRequest) throws Exception{

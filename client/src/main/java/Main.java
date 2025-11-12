@@ -6,8 +6,8 @@ public class Main {
         }
 
         try {
-            var preLoginClient = new PreLoginClient(serverUrl);
-            preLoginClient.run();
+            var chessClient = new ChessClient(serverUrl);
+            chessClient.run();
         } catch (Throwable ex) {
             System.out.printf("Unable to start server: %s%n", ex.getMessage());
         }
