@@ -1,5 +1,6 @@
 package client;
 
+import model.LoginRequest;
 import model.RegisterRequest;
 import org.junit.jupiter.api.*;
 import server.Server;
@@ -38,6 +39,23 @@ public class ServerFacadeTests {
     public void registerFailure() {
         try {
             facade.register(new RegisterRequest("username", "other password", "other email"));
+            fail("Expected error to be thrown");
+        }
+        catch(ServiceException e) {
+            Assertions.assertTrue(true);
+        }
+    }
+
+    @Test
+    public void loginSuccess() throws ServiceException {
+        var authData = facade.login(new LoginRequest("username", "password"));
+        assertTrue(authData.authToken().length() > 10);
+    }
+
+    @Test
+    public void loginFailure() {
+        try {
+            facade.login(new LoginRequest("wrong username", "wrong password"));
             fail("Expected error to be thrown");
         }
         catch(ServiceException e) {
