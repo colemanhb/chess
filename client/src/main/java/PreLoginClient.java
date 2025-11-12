@@ -10,6 +10,7 @@ import static ui.EscapeSequences.*;
 public class PreLoginClient {
     private final ServerFacade server;
     private State state = State.LOGGEDOUT;
+    private String authToken;
 
     public PreLoginClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
@@ -69,7 +70,8 @@ public class PreLoginClient {
                 };
             } else if (state == State.LOGGEDIN) {
                 return switch (cmd) {
-                    case "l", "list" -> list(params);
+                    case "l", "list" -> list();
+                    case "c", "create" -> create(params);
                     default -> help();
                 };
             }
@@ -85,7 +87,8 @@ public class PreLoginClient {
             String username = params[0];
             String password = params[1];
             String email = params[2];
-            server.register(new model.RegisterRequest(username, password, email));
+            var registerData = server.register(new model.RegisterRequest(username, password, email));
+            authToken = registerData.authToken();
             return String.format("You registered as %s.", username);
         }
         throw new ServiceException("Expected: <USERNAME> <PASSWORD> <EMAIL>", ServiceException.Code.BadRequestError);
@@ -96,13 +99,14 @@ public class PreLoginClient {
             state = State.LOGGEDIN;
             String username = params[0];
             String password = params[1];
-            server.login(new model.LoginRequest(username, password));
+            var loginData = server.login(new model.LoginRequest(username, password));
+            authToken = loginData.authToken();
             return String.format("You logged in as %s.", username);
         }
         throw new ServiceException("Expected: <USERNAME> <PASSWORD>", ServiceException.Code.BadRequestError);
     }
 
-    public String list(String... params) throws ServiceException {
+    public String list() throws ServiceException {
         var games = server.list();
         var result = new StringBuilder();
         var gson = new Gson();
@@ -110,6 +114,15 @@ public class PreLoginClient {
             result.append(gson.toJson(game)).append('\n');
         }
         return result.toString();
+    }
+
+    public String create(String... params) throws ServiceException {
+        if (params.length >= 1) {
+            String gameName = params[0];
+            var gameData = server.create(new model.CreateGameRequest(authToken, gameName));
+            return String.format("Game started with ID %s.", gameData.gameID());
+        }
+        throw new ServiceException("Expected: <GAMENAME>", ServiceException.Code.BadRequestError);
     }
 
     public String help() {
