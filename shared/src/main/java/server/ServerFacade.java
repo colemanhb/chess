@@ -17,6 +17,10 @@ public class ServerFacade {
         serverUrl = url;
     }
 
+    public ServerFacade(int port) {
+        serverUrl = String.format("http://localhost:%s", port);
+    }
+
     public LoginResult register(RegisterRequest registerRequest) throws ServiceException{
         var request = buildRequest("POST", "/user", registerRequest);
         var response = sendRequest(request);
