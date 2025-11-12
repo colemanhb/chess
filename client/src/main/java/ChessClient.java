@@ -21,6 +21,13 @@ public class ChessClient {
             System.out.println("♕ Welcome to Chess. Sign in to start.");
             System.out.print(help());
         }
+        run(false);
+    }
+
+    public void run(boolean printMessages) {
+        if(printMessages) {
+            run();
+        }
         Scanner scanner = new Scanner(System.in);
         var result = "";
         while (!result.equals("quit") && state.equals(State.LOGGEDOUT)) {
@@ -47,7 +54,7 @@ public class ChessClient {
         }
         System.out.println();
         if(!result.equals("quit")) {
-            run();
+            run(false);
         }
     }
 
@@ -71,6 +78,8 @@ public class ChessClient {
                 return switch (cmd) {
                     case "l", "list" -> list();
                     case "c", "create" -> create(params);
+                    case "j", "join" -> join(params);
+                    case "w", "watch" -> watch(params);
                     case "logout" -> logout();
                     default -> help();
                 };
@@ -123,6 +132,23 @@ public class ChessClient {
             return String.format("Game started with ID %s.", gameData.gameID());
         }
         throw new ServiceException("Expected: <GAMENAME>", ServiceException.Code.BadRequestError);
+    }
+
+    public String join(String... params) throws ServiceException {
+        if(params.length >= 2) {
+            String gameID = params[0];
+            String color = params[1];
+            return String.format("Print game here from the %s team's perspective.", color);
+        }
+        throw new ServiceException("Expected: <GAME ID> <COLOR>", ServiceException.Code.BadRequestError);
+    }
+
+    public String watch(String... params) throws ServiceException {
+        if(params.length >= 1) {
+            String gameID = params[0];
+            return "Print game here from the white team's perspective.";
+        }
+        throw new ServiceException("Expected: <GAME ID>", ServiceException.Code.BadRequestError);
     }
 
     public String logout() throws ServiceException {
