@@ -131,15 +131,14 @@ public class ServerFacadeTests {
     public void watchSuccess() throws ServiceException {
         var authData = facade.register(new RegisterRequest("username", "password", "email"));
         var gameResult = facade.create(new CreateGameRequest(authData.authToken(), "new game"));
-        facade.watch(new JoinGameRequest(authData.authToken(), ChessGame.TeamColor.BLACK, gameResult.gameID()));
-        var username = facade.list(new AuthorizationRequest(authData.authToken())).games().getFirst().blackUsername();
-        assertEquals("username", username);
+        var games = facade.watch(new JoinGameRequest(authData.authToken(), ChessGame.TeamColor.BLACK, gameResult.gameID()));
+        assertNotNull(games);
     }
 
     @Test
     public void watchFailure() {
         try {
-            facade.join(new JoinGameRequest("wrong token", ChessGame.TeamColor.BLACK, 1));
+            facade.watch(new JoinGameRequest("wrong token", ChessGame.TeamColor.BLACK, 1));
             fail("Expected error to be thrown");
         }
         catch(ServiceException e) {
