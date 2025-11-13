@@ -46,6 +46,8 @@ public class ServerFacade {
     }
 
     public ListGamesResult join(JoinGameRequest joinGameRequest) throws ServiceException {
+        var request = buildRequest("PUT", "/game", joinGameRequest, joinGameRequest.authToken());
+        sendRequest(request);
         return list(new AuthorizationRequest(joinGameRequest.authToken()));
     }
 
@@ -55,12 +57,14 @@ public class ServerFacade {
 
     public void logout(AuthorizationRequest logoutRequest) throws ServiceException {
         var request = buildRequest("DELETE", "/session", logoutRequest, logoutRequest.authToken());
-        sendRequest(request);
+        var response = sendRequest(request);
+        handleResponse(response, null);
     }
 
     public void clear() throws ServiceException {
         var request = buildRequest("DELETE", "/db", null, null);
-        sendRequest(request);
+        var response = sendRequest(request);
+        handleResponse(response, null);
     }
 
     private HttpRequest buildRequest(String method, String path, Object body, String authToken) {

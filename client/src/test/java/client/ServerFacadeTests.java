@@ -1,9 +1,7 @@
 package client;
 
-import model.AuthorizationRequest;
-import model.CreateGameRequest;
-import model.LoginRequest;
-import model.RegisterRequest;
+import chess.ChessGame;
+import model.*;
 import org.junit.jupiter.api.*;
 import server.Server;
 import server.ServerFacade;
@@ -109,25 +107,63 @@ public class ServerFacadeTests {
         }
     }
 
-    //join success
+    @Test
+    public void joinSuccess() throws ServiceException {
+        var authData = facade.register(new RegisterRequest("username", "password", "email"));
+        var gameResult = facade.create(new CreateGameRequest(authData.authToken(), "new game"));
+        facade.join(new JoinGameRequest(authData.authToken(), ChessGame.TeamColor.BLACK, gameResult.gameID()));
+        var username = facade.list(new AuthorizationRequest(authData.authToken())).games().getFirst().blackUsername();
+        assertEquals("username", username);
+    }
 
-    //join failure
+    @Test
+    public void joinFailure() {
+        try {
+            facade.join(new JoinGameRequest("wrong token", ChessGame.TeamColor.BLACK, 1));
+            fail("Expected error to be thrown");
+        }
+        catch(ServiceException e) {
+            Assertions.assertTrue(true);
+        }
+    }
 
-    //watch success
+    @Test
+    public void watchSuccess() throws ServiceException {
+        var authData = facade.register(new RegisterRequest("username", "password", "email"));
+        var gameResult = facade.create(new CreateGameRequest(authData.authToken(), "new game"));
+        facade.watch(new JoinGameRequest(authData.authToken(), ChessGame.TeamColor.BLACK, gameResult.gameID()));
+        var username = facade.list(new AuthorizationRequest(authData.authToken())).games().getFirst().blackUsername();
+        assertEquals("username", username);
+    }
 
-    //watch failure
+    @Test
+    public void watchFailure() {
+        try {
+            facade.join(new JoinGameRequest("wrong token", ChessGame.TeamColor.BLACK, 1));
+            fail("Expected error to be thrown");
+        }
+        catch(ServiceException e) {
+            Assertions.assertTrue(true);
+        }
+    }
 
     @Test
     public void logoutSuccess() throws ServiceException {
         var authData = facade.register(new RegisterRequest("username", "password", "email"));
         facade.logout(new AuthorizationRequest(authData.authToken()));
-
+        try {
+            facade.list(new AuthorizationRequest(authData.authToken()));
+            fail("Expected error to be thrown");
+        }
+        catch(ServiceException e) {
+            Assertions.assertTrue(true);
+        }
     }
 
     @Test
     public void logoutFailure() {
         try {
-            facade.login(new LoginRequest("wrong username", "wrong password"));
+            facade.logout(new AuthorizationRequest("wrong token"));
             fail("Expected error to be thrown");
         }
         catch(ServiceException e) {
