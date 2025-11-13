@@ -173,19 +173,36 @@ public class ChessClient {
 
     private String makeGrid(ChessBoard board, boolean whiteSide) {
         StringBuilder result = new StringBuilder();
+        result.append(makeLetterLabels(whiteSide)).append("\n");
+        var row = 0;
+        var col = 0;
         for(int i = 1; i <= 8; i ++) {
             for(int j = 1; j <= 8; j ++) {
-                int row = i;
-                int col = j;
+                row = i;
+                col = j;
                 if(whiteSide) {
                     row = 9 - i;
                     col = 9 - j;
                 }
+                if(j == 1) {
+                    result.append(" ").append(row).append(" ");
+                }
                 result.append(makeSquare(board, new ChessPosition(row,col)));
             }
-            result.append(RESET_BG_COLOR + "\n");
+            result.append(RESET_BG_COLOR + SET_TEXT_COLOR_WHITE);
+            result.append(" ").append(row).append(" ").append("\n");
         }
+        result.append(makeLetterLabels(whiteSide));
         return result.toString();
+    }
+
+    private String makeLetterLabels(boolean forwards) {
+        if(forwards) {
+            return RESET_BG_COLOR + SET_TEXT_COLOR_WHITE + "    a  b  c  d  e  f  g  h   ";
+        }
+        else {
+            return RESET_BG_COLOR + SET_TEXT_COLOR_WHITE + "    h  g  f  e  d  c  b  a   ";
+        }
     }
 
     private String makeSquare(ChessBoard board, ChessPosition position) {
