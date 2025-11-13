@@ -52,6 +52,10 @@ public class Server {
             ctx.status(200);
         } catch(ServiceException ex) {
             ctx.status(ex.toHttpStatusCode());
+            throw ex;
+        } catch(Exception ex) {
+            ctx.status(401);
+            throw ex;
         }
     }
 

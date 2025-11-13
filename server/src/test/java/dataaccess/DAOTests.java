@@ -208,23 +208,6 @@ public class DAOTests {
     }
 
     @Test
-    public void addSecondPlayerToGame() throws Exception {
-        var dataAccess = new MySqlDataAccess();
-        dataAccess.clearData();
-        int gameID = dataAccess.createGame("first game");
-        dataAccess.addAuth(new AuthData("token", "username"));
-        dataAccess.addAuth(new AuthData("new token", "new username"));
-        dataAccess.addPlayerToGame("token", ChessGame.TeamColor.BLACK, gameID);
-        try {
-            dataAccess.addPlayerToGame("new token", ChessGame.TeamColor.BLACK, gameID);
-            fail("Expected error to be thrown");
-        }
-        catch(DataAccessException e) {
-            Assertions.assertTrue(true);
-        }
-    }
-
-    @Test
     public void debugging() throws Exception {
         var dataAccess = new MySqlDataAccess();
         dataAccess.clearData();

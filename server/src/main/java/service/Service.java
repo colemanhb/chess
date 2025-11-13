@@ -74,7 +74,7 @@ public class Service {
         checkAuthorization(new AuthorizationRequest(joinGameRequest.authToken()));
         var desiredGame = dataAccess.getGame(joinGameRequest.gameID());
         if(desiredGame == null) {
-            throw new ServiceException("Error: unauthorized", ServiceException.Code.GameNotFoundError);
+            throw new ServiceException("Error: game not found", ServiceException.Code.GameNotFoundError);
         }
         var existingPlayer = switch(joinGameRequest.playerColor())
         {case BLACK -> desiredGame.blackUsername(); case WHITE -> desiredGame.whiteUsername();};
@@ -96,12 +96,9 @@ public class Service {
         if(authorizationRequest.authToken() == null) {
             throw new ServiceException("Error: Bad request, null auth token", ServiceException.Code.BadRequestError);
         }
-        //System.out.println("Looking for authKey" + authorizationRequest.authToken());
         if(dataAccess.findAuth(authorizationRequest.authToken()) == null) {
-            //System.out.println("Didn't find it");
             throw new ServiceException("Error: AuthToken not found", ServiceException.Code.NotLoggedInError);
         }
-        //System.out.println("Found it!");
     }
 
     String hashPassword(String clearTextPassword) {
