@@ -72,9 +72,24 @@ public class ServerFacadeTests {
         }
     }
 
-    //list success
+    @Test
+    public void listSuccess() throws ServiceException {
+        var authData = facade.register(new RegisterRequest("username", "password", "email"));
+        facade.create(new CreateGameRequest(authData.authToken(), "new game"));
+        var gamesList = facade.list(new AuthorizationRequest(authData.authToken()));
+        assertNotNull(gamesList);
+    }
 
-    //list failure
+    @Test
+    public void listFailure() {
+        try {
+            facade.list(new AuthorizationRequest("wrong authtoken"));
+            fail("Expected error to be thrown");
+        }
+        catch(ServiceException e) {
+            Assertions.assertTrue(true);
+        }
+    }
 
     @Test
     public void createSuccess() throws ServiceException {
@@ -86,7 +101,7 @@ public class ServerFacadeTests {
     @Test
     public void createFailure() {
         try {
-            facade.login(new LoginRequest("wrong username", "wrong password"));
+            facade.create(new CreateGameRequest("wrong auth token", "new game"));
             fail("Expected error to be thrown");
         }
         catch(ServiceException e) {

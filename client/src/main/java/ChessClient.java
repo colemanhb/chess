@@ -1,4 +1,5 @@
 import com.google.gson.Gson;
+import model.AuthorizationRequest;
 import server.ServerFacade;
 import service.ServiceException;
 
@@ -116,7 +117,7 @@ public class ChessClient {
     }
 
     public String list() throws ServiceException {
-        var games = server.list(authToken);
+        var games = server.list(new AuthorizationRequest(authToken));
         var result = new StringBuilder();
         var gson = new Gson();
         for(var game : games.games()) {

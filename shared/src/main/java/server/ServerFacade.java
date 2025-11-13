@@ -33,8 +33,8 @@ public class ServerFacade {
         return handleResponse(response, LoginResult.class);
     }
 
-    public ListGamesResult list(String authToken) throws ServiceException {
-        var request = buildRequest("GET", "/game", null, authToken);
+    public ListGamesResult list(AuthorizationRequest authorizationRequest) throws ServiceException {
+        var request = buildRequest("GET", "/game", null, authorizationRequest.authToken());
         var response = sendRequest(request);
         return handleResponse(response, ListGamesResult.class);
     }
