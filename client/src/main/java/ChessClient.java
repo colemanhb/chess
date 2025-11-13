@@ -1,5 +1,7 @@
+import chess.ChessGame;
 import com.google.gson.Gson;
 import model.AuthorizationRequest;
+import model.JoinGameRequest;
 import server.ServerFacade;
 import service.ServiceException;
 
@@ -137,9 +139,14 @@ public class ChessClient {
 
     public String join(String... params) throws ServiceException {
         if(params.length >= 2) {
-            String gameID = params[0];
-            String color = params[1];
-            return String.format("Print game here from the %s team's perspective.", color);
+            int gameID = Integer.parseInt(params[0]);
+            ChessGame.TeamColor color = ChessGame.TeamColor.valueOf(params[1].toUpperCase());
+            var gameData = server.join(new JoinGameRequest(authToken, color, gameID));
+            for(var i : gameData.games()) {
+                if (i.gameID() == gameID) {
+                    return i.toString();
+                }
+            }
         }
         throw new ServiceException("Expected: <GAME ID> <COLOR>", ServiceException.Code.BadRequestError);
     }

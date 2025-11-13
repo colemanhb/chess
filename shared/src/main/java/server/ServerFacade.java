@@ -45,6 +45,10 @@ public class ServerFacade {
         return handleResponse(response, CreateGameResult.class);
     }
 
+    public ListGamesResult join(JoinGameRequest joinGameRequest) throws ServiceException {
+        return list(new AuthorizationRequest(joinGameRequest.authToken()));
+    }
+
     public void logout(AuthorizationRequest logoutRequest) throws ServiceException {
         var request = buildRequest("DELETE", "/session", logoutRequest, logoutRequest.authToken());
         sendRequest(request);
