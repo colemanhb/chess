@@ -4,6 +4,7 @@ import chess.ChessPiece;
 import chess.ChessPosition;
 import com.google.gson.Gson;
 import model.AuthorizationRequest;
+import model.GameData;
 import model.JoinGameRequest;
 import model.ListGamesResult;
 import server.ServerFacade;
@@ -42,7 +43,7 @@ public class ChessClient {
             String line = scanner.nextLine();
             try {
                 result = eval(line);
-                System.out.print(SET_TEXT_COLOR_BLUE + result);
+                System.out.print(result);
             } catch (Throwable e) {
                 var msg = e.toString();
                 System.out.print(msg);
@@ -53,7 +54,7 @@ public class ChessClient {
             String line = scanner.nextLine();
             try {
                 result = eval(line);
-                System.out.print(SET_TEXT_COLOR_BLUE + result);
+                System.out.print(result);
             } catch (Throwable e) {
                 var msg = e.toString();
                 System.out.println(msg);
@@ -66,7 +67,7 @@ public class ChessClient {
     }
 
     private void printPrompt() {
-        System.out.println("\n" + ">>> " + SET_TEXT_COLOR_GREEN);
+        System.out.println("\n" + SET_TEXT_COLOR_GREEN + ">>> " + SET_TEXT_COLOR_BLUE);
     }
 
     public String eval(String input) {
@@ -127,9 +128,15 @@ public class ChessClient {
         var result = new StringBuilder();
         var gson = new Gson();
         for(var game : games.games()) {
-            result.append(gson.toJson(game)).append('\n');
+            result.append(readableGameData(game)).append("\n\n");
         }
         return result.toString();
+    }
+
+    private String readableGameData(GameData gameData) {
+        return "Game " + gameData.gameID() + ": " +
+                gameData.gameName() + "\n" +
+                gameData.whiteUsername() + " vs. " + gameData.blackUsername();
     }
 
     public String create(String... params) throws ServiceException {
@@ -264,8 +271,9 @@ public class ChessClient {
     }
 
     public String help() {
+        var result = "";
         if(state == State.LOGGEDOUT) {
-            return """
+            result =  """
                     Options:
                     Login as an existing user: “l”, “login” <USERNAME> <PASSWORD>
                     Register a new user: “r”, “register” <USERNAME> <PASSWORD> <EMAIL>
@@ -273,7 +281,7 @@ public class ChessClient {
                     Print this message: “h”, “help”
                     """;
         } else if (state == State.LOGGEDIN) {
-            return """
+            result =  """
                     Options:
                     List current games: “l”, “list”
                     Create a new game: “c”, “create” <GAME NAME>
@@ -282,6 +290,6 @@ public class ChessClient {
                     Logout: “logout”
                     """;
         }
-        return null;
+        return SET_TEXT_COLOR_WHITE + result + SET_TEXT_COLOR_BLUE;
     }
 }
