@@ -1,4 +1,7 @@
+import chess.ChessBoard;
 import chess.ChessGame;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import com.google.gson.Gson;
 import model.AuthorizationRequest;
 import model.JoinGameRequest;
@@ -144,7 +147,7 @@ public class ChessClient {
             var gameData = server.join(new JoinGameRequest(authToken, color, gameID));
             for(var i : gameData.games()) {
                 if (i.gameID() == gameID) {
-                    return i.toString();
+                    return makeGrid(i.game().getBoard());
                 }
             }
         }
@@ -157,6 +160,52 @@ public class ChessClient {
             return "Print game here from the white team's perspective.";
         }
         throw new ServiceException("Expected: <GAME ID>", ServiceException.Code.BadRequestError);
+    }
+
+    private String makeGrid(ChessBoard board) {
+        StringBuilder result = new StringBuilder();
+        for(int i = 1; i <= 8; i ++) {
+            for(int j = 1; j <= 8; j ++) {
+                result.append(makeSquare(board.getPiece(new ChessPosition(i,j)), i, j));
+            }
+            result.append(RESET_BG_COLOR + "\n");
+        }
+        return result.toString();
+    }
+
+    private String makeSquare(ChessPiece piece, int i, int j) {
+        StringBuilder result = new StringBuilder();
+        if((i + j) % 2 == 0) {
+            result.append(SET_BG_COLOR_DARK_GREY);
+        }
+        else {
+            result.append(SET_BG_COLOR_LIGHT_GREY);
+        }
+        if(piece != null) {
+            if(piece.getTeamColor() == ChessGame.TeamColor.BLACK) {
+                result.append(SET_TEXT_COLOR_BLACK);
+            }
+            else {
+                result.append(SET_TEXT_COLOR_WHITE);
+            }
+            result.append(visualizePiece(piece));
+        }
+        else {
+            result.append("   ");
+        }
+        return result.toString();
+    }
+
+    private String visualizePiece(ChessPiece piece) {
+        var type = piece.getPieceType();
+        return switch(type) {
+            case ROOK -> BLACK_ROOK;
+            case BISHOP -> BLACK_BISHOP;
+            case KNIGHT -> BLACK_KNIGHT;
+            case KING -> BLACK_KING;
+            case QUEEN -> BLACK_QUEEN;
+            case PAWN -> BLACK_PAWN;
+        };
     }
 
     public String logout() throws ServiceException {
