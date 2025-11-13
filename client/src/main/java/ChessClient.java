@@ -5,6 +5,7 @@ import chess.ChessPosition;
 import com.google.gson.Gson;
 import model.AuthorizationRequest;
 import model.JoinGameRequest;
+import model.ListGamesResult;
 import server.ServerFacade;
 import service.ServiceException;
 
@@ -144,38 +145,55 @@ public class ChessClient {
         if(params.length >= 2) {
             int gameID = Integer.parseInt(params[0]);
             ChessGame.TeamColor color = ChessGame.TeamColor.valueOf(params[1].toUpperCase());
-            var gameData = server.join(new JoinGameRequest(authToken, color, gameID));
-            for(var i : gameData.games()) {
-                if (i.gameID() == gameID) {
-                    return makeGrid(i.game().getBoard());
-                }
-            }
+            var gameList = server.join(new JoinGameRequest(authToken, color, gameID));
+            return makeGrid(findGame(gameList, gameID), color == ChessGame.TeamColor.WHITE);
+
         }
         throw new ServiceException("Expected: <GAME ID> <COLOR>", ServiceException.Code.BadRequestError);
     }
 
     public String watch(String... params) throws ServiceException {
         if(params.length >= 1) {
-            String gameID = params[0];
-            return "Print game here from the white team's perspective.";
+            int gameID = Integer.parseInt(params[0]);
+            var gameList = server.watch(new JoinGameRequest(authToken, null, gameID));
+            return makeGrid(findGame(gameList, gameID), true);
         }
         throw new ServiceException("Expected: <GAME ID>", ServiceException.Code.BadRequestError);
     }
 
-    private String makeGrid(ChessBoard board) {
+    private ChessBoard findGame(ListGamesResult gameList, int gameID) {
+        for(var i : gameList.games()) {
+            if (i.gameID() == gameID) {
+                return i.game().getBoard();
+            }
+        }
+        return null;
+    }
+
+
+    private String makeGrid(ChessBoard board, boolean whiteSide) {
         StringBuilder result = new StringBuilder();
         for(int i = 1; i <= 8; i ++) {
             for(int j = 1; j <= 8; j ++) {
-                result.append(makeSquare(board.getPiece(new ChessPosition(i,j)), i, j));
+                int row = i;
+                int col = j;
+                if(whiteSide) {
+                    row = 9 - i;
+                    col = 9 - j;
+                }
+                result.append(makeSquare(board, new ChessPosition(row,col)));
             }
             result.append(RESET_BG_COLOR + "\n");
         }
         return result.toString();
     }
 
-    private String makeSquare(ChessPiece piece, int i, int j) {
+    private String makeSquare(ChessBoard board, ChessPosition position) {
+        var piece = board.getPiece(position);
+        var row = position.getRow();
+        var col = position.getColumn();
         StringBuilder result = new StringBuilder();
-        if((i + j) % 2 == 0) {
+        if((row + col) % 2 == 0) {
             result.append(SET_BG_COLOR_DARK_GREY);
         }
         else {
@@ -198,14 +216,28 @@ public class ChessClient {
 
     private String visualizePiece(ChessPiece piece) {
         var type = piece.getPieceType();
-        return switch(type) {
-            case ROOK -> BLACK_ROOK;
-            case BISHOP -> BLACK_BISHOP;
-            case KNIGHT -> BLACK_KNIGHT;
-            case KING -> BLACK_KING;
-            case QUEEN -> BLACK_QUEEN;
-            case PAWN -> BLACK_PAWN;
-        };
+        var color = piece.getTeamColor();
+        if(color == ChessGame.TeamColor.WHITE)
+        {
+            return switch(type) {
+                case ROOK -> WHITE_ROOK;
+                case BISHOP -> WHITE_BISHOP;
+                case KNIGHT -> WHITE_KNIGHT;
+                case KING -> WHITE_KING;
+                case QUEEN -> WHITE_QUEEN;
+                case PAWN -> WHITE_PAWN;
+            };
+        }
+        else {
+            return switch(type) {
+                case ROOK -> BLACK_ROOK;
+                case BISHOP -> BLACK_BISHOP;
+                case KNIGHT -> BLACK_KNIGHT;
+                case KING -> BLACK_KING;
+                case QUEEN -> BLACK_QUEEN;
+                case PAWN -> BLACK_PAWN;
+            };
+        }
     }
 
     public String logout() throws ServiceException {
