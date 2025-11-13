@@ -2,7 +2,6 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
-import com.google.gson.Gson;
 import model.AuthorizationRequest;
 import model.GameData;
 import model.JoinGameRequest;
@@ -126,7 +125,6 @@ public class ChessClient {
     public String list() throws ServiceException {
         var games = server.list(new AuthorizationRequest(authToken));
         var result = new StringBuilder();
-        var gson = new Gson();
         for(var game : games.games()) {
             result.append(readableGameData(game)).append("\n\n");
         }
@@ -136,7 +134,7 @@ public class ChessClient {
     private String readableGameData(GameData gameData) {
         return "Game " + gameData.gameID() + ": " +
                 gameData.gameName() + "\n" +
-                gameData.whiteUsername() + " vs. " + gameData.blackUsername();
+                "White player: " + gameData.whiteUsername() + ", black player: " + gameData.blackUsername();
     }
 
     public String create(String... params) throws ServiceException {
@@ -150,11 +148,31 @@ public class ChessClient {
 
     public String join(String... params) throws ServiceException {
         if(params.length >= 2) {
-            int gameID = Integer.parseInt(params[0]);
-            ChessGame.TeamColor color = ChessGame.TeamColor.valueOf(params[1].toUpperCase());
-            var gameList = server.join(new JoinGameRequest(authToken, color, gameID));
-            return makeGrid(findGame(gameList, gameID), color == ChessGame.TeamColor.WHITE);
+            int gameID;
+            try {
+                gameID = Integer.parseInt(params[0]);
+            } catch (Exception e) {
+                throw new ServiceException("Not a number", ServiceException.Code.BadRequestError);
+            }
+            ChessGame.TeamColor color;
+            try {
+                color = ChessGame.TeamColor.valueOf(params[1].toUpperCase());
+            } catch (Exception e) {
+                throw new ServiceException("Invalid color", ServiceException.Code.BadRequestError);
+            }
+            ListGamesResult gameList;
+            try {
+                gameList = server.join(new JoinGameRequest(authToken, color, gameID));
+            } catch (Exception e) {
+                if(e.getMessage().equals("Cannot invoke \"chess.ChessBoard.getPiece(chess.ChessPosition)\" because \"board\" is null")) {
+                    throw new ServiceException("Invalid number", ServiceException.Code.BadRequestError);
+                }
+                else {
+                    throw e;
+                }
+            }
 
+            return makeGrid(findGame(gameList, gameID), color == ChessGame.TeamColor.WHITE);
         }
         throw new ServiceException("Expected: <GAME ID> <COLOR>", ServiceException.Code.BadRequestError);
     }
@@ -218,10 +236,10 @@ public class ChessClient {
         var col = position.getColumn();
         StringBuilder result = new StringBuilder();
         if((row + col) % 2 == 0) {
-            result.append(SET_BG_COLOR_DARK_GREY);
+            result.append(SET_BG_COLOR_LIGHT_GREY);
         }
         else {
-            result.append(SET_BG_COLOR_LIGHT_GREY);
+            result.append(SET_BG_COLOR_DARK_GREY);
         }
         if(piece != null) {
             if(piece.getTeamColor() == ChessGame.TeamColor.BLACK) {
