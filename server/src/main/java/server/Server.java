@@ -41,13 +41,18 @@ public class Server {
     }
 
     private void joinGame(@NotNull Context ctx) throws Exception {
-        var serializer = new Gson();
-        String jsonRequest = ctx.body();
-        var request = serializer.fromJson(jsonRequest, JoinGameRequest.class);
-        String authToken = ctx.header("authorization");
-        request = new JoinGameRequest(authToken, request.playerColor(), request.gameID());
-        //call to the service
-        service.joinGame(request);
+        try{
+            var serializer = new Gson();
+            String jsonRequest = ctx.body();
+            var request = serializer.fromJson(jsonRequest, JoinGameRequest.class);
+            String authToken = ctx.header("authorization");
+            request = new JoinGameRequest(authToken, request.playerColor(), request.gameID());
+            //call to the service
+            service.joinGame(request);
+            ctx.status(200);
+        } catch(ServiceException ex) {
+            ctx.status(ex.toHttpStatusCode());
+        }
     }
 
     private void createGame(@NotNull Context ctx) throws Exception {

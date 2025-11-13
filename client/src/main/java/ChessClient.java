@@ -154,6 +154,9 @@ public class ChessClient {
             } catch (Exception e) {
                 throw new ServiceException("Not a number", ServiceException.Code.BadRequestError);
             }
+            if(gameID <= 0 || !list().contains("Game " + gameID)) {
+                throw new ServiceException("Invalid number", ServiceException.Code.BadRequestError);
+            }
             ChessGame.TeamColor color;
             try {
                 color = ChessGame.TeamColor.valueOf(params[1].toUpperCase());
@@ -161,17 +164,7 @@ public class ChessClient {
                 throw new ServiceException("Invalid color", ServiceException.Code.BadRequestError);
             }
             ListGamesResult gameList;
-            try {
-                gameList = server.join(new JoinGameRequest(authToken, color, gameID));
-            } catch (Exception e) {
-                if(e.getMessage().equals("Cannot invoke \"chess.ChessBoard.getPiece(chess.ChessPosition)\" because \"board\" is null")) {
-                    throw new ServiceException("Invalid number", ServiceException.Code.BadRequestError);
-                }
-                else {
-                    throw e;
-                }
-            }
-
+            gameList = server.join(new JoinGameRequest(authToken, color, gameID));
             return makeGrid(findGame(gameList, gameID), color == ChessGame.TeamColor.WHITE);
         }
         throw new ServiceException("Expected: <GAME ID> <COLOR>", ServiceException.Code.BadRequestError);
@@ -265,8 +258,8 @@ public class ChessClient {
                 case ROOK -> WHITE_ROOK;
                 case BISHOP -> WHITE_BISHOP;
                 case KNIGHT -> WHITE_KNIGHT;
-                case KING -> WHITE_KING;
-                case QUEEN -> WHITE_QUEEN;
+                case KING -> WHITE_QUEEN;
+                case QUEEN -> WHITE_KING;
                 case PAWN -> WHITE_PAWN;
             };
         }
@@ -275,8 +268,8 @@ public class ChessClient {
                 case ROOK -> BLACK_ROOK;
                 case BISHOP -> BLACK_BISHOP;
                 case KNIGHT -> BLACK_KNIGHT;
-                case KING -> BLACK_KING;
-                case QUEEN -> BLACK_QUEEN;
+                case KING -> BLACK_QUEEN;
+                case QUEEN -> BLACK_KING;
                 case PAWN -> BLACK_PAWN;
             };
         }

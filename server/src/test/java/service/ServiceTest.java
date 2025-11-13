@@ -231,5 +231,26 @@ public class ServiceTest {
         }
     }
 
+    @Test
+    public void joinGameDuplicateColor() throws Exception{
+        var dataAccess = new MemoryDataAccess();
+        var userService = new Service(dataAccess);
+        var regResult = userService.register(new RegisterRequest("cow","rat","john"));
+        var authToken = regResult.authToken();
+        var regResult2 = userService.register(new RegisterRequest("c", "c", "c"));
+        var authToken2 = regResult2.authToken();
+        var newGameData = userService.createGame(new CreateGameRequest(authToken,"NEW GAME"));
+        var gameID = newGameData.gameID();
+        userService.joinGame(new JoinGameRequest(authToken, ChessGame.TeamColor.BLACK, gameID));
+        try {
+            userService.joinGame(new JoinGameRequest(authToken2, ChessGame.TeamColor.BLACK, gameID));
+            fail("Expected exception to be thrown");
+        }
+        catch (ServiceException e) {
+            Assertions.assertTrue(true);
+            //Test passed, exception thrown as expected
+        }
+    }
+
 }
 

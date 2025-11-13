@@ -47,7 +47,10 @@ public class ServerFacade {
 
     public ListGamesResult join(JoinGameRequest joinGameRequest) throws ServiceException {
         var request = buildRequest("PUT", "/game", joinGameRequest, joinGameRequest.authToken());
-        sendRequest(request);
+        var response = sendRequest(request);
+        if (response.statusCode() == 403) {
+            throw new ServiceException("Color already taken", ServiceException.Code.BadRequestError);
+        }
         return list(new AuthorizationRequest(joinGameRequest.authToken()));
     }
 
