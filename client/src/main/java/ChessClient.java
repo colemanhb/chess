@@ -116,7 +116,7 @@ public class ChessClient {
     }
 
     public String list() throws ServiceException {
-        var games = server.list();
+        var games = server.list(authToken);
         var result = new StringBuilder();
         var gson = new Gson();
         for(var game : games.games()) {

@@ -97,6 +97,10 @@ public class Server {
     }
 
     private void clear(Context ctx) throws Exception{
+        clear();
+    }
+
+    public void clear() throws Exception {
         if(service != null) {
             service.clear();
         }
@@ -104,9 +108,6 @@ public class Server {
 
     public int run(int desiredPort) {
         httpHandler.start(desiredPort);
-        return httpHandler.port();
-    }
-    public int port() {
         return httpHandler.port();
     }
     public void stop() {

@@ -94,7 +94,7 @@ public class Service {
 
     public void checkAuthorization(AuthorizationRequest authorizationRequest) throws Exception {
         if(authorizationRequest.authToken() == null) {
-            throw new ServiceException("Error: Bad request", ServiceException.Code.BadRequestError);
+            throw new ServiceException("Error: Bad request, null auth token", ServiceException.Code.BadRequestError);
         }
         //System.out.println("Looking for authKey" + authorizationRequest.authToken());
         if(dataAccess.findAuth(authorizationRequest.authToken()) == null) {
