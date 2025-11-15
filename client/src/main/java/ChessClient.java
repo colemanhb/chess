@@ -200,7 +200,6 @@ public class ChessClient {
                 col = j;
                 if(whiteSide) {
                     row = 9 - i;
-                    col = 9 - j;
                 }
                 if(j == 1) {
                     result.append(" ").append(row).append(" ");
@@ -228,7 +227,7 @@ public class ChessClient {
         var row = position.getRow();
         var col = position.getColumn();
         StringBuilder result = new StringBuilder();
-        if((row + col) % 2 == 0) {
+        if((row + col) % 2 == 1) {
             result.append(SET_BG_COLOR_LIGHT_GREY);
         }
         else {
@@ -258,8 +257,8 @@ public class ChessClient {
                 case ROOK -> WHITE_ROOK;
                 case BISHOP -> WHITE_BISHOP;
                 case KNIGHT -> WHITE_KNIGHT;
-                case KING -> WHITE_QUEEN;
-                case QUEEN -> WHITE_KING;
+                case KING -> WHITE_KING;
+                case QUEEN -> WHITE_QUEEN;
                 case PAWN -> WHITE_PAWN;
             };
         }
@@ -268,8 +267,8 @@ public class ChessClient {
                 case ROOK -> BLACK_ROOK;
                 case BISHOP -> BLACK_BISHOP;
                 case KNIGHT -> BLACK_KNIGHT;
-                case KING -> BLACK_QUEEN;
-                case QUEEN -> BLACK_KING;
+                case KING -> BLACK_KING;
+                case QUEEN -> BLACK_QUEEN;
                 case PAWN -> BLACK_PAWN;
             };
         }
