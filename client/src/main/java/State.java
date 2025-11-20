@@ -1,5 +1,6 @@
 public enum State {
     LOGGEDIN,
     LOGGEDOUT,
-    INGAME
+    PLAYINGGAME,
+    WATCHINGGAME
 }

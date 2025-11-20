@@ -2,10 +2,7 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
-import model.AuthorizationRequest;
-import model.GameData;
-import model.JoinGameRequest;
-import model.ListGamesResult;
+import model.*;
 import server.ServerFacade;
 import service.ServiceException;
 
@@ -37,7 +34,22 @@ public class ChessClient {
         }
         Scanner scanner = new Scanner(System.in);
         var result = "";
-        while (!result.equals("quit") && state.equals(State.LOGGEDOUT)) {
+        result = printMessagesByState(result, State.LOGGEDOUT, scanner);
+        result = printMessagesByState(result, State.LOGGEDIN, scanner);
+        System.out.println();
+        if(state == State.LOGGEDIN && !result.equals("quit")) {
+            run(false);
+        }
+        if(state.equals(State.PLAYINGGAME) || state.equals(State.WATCHINGGAME)) {
+            result = printMessagesByState(result, state, scanner);
+        }
+        if(!result.equals("quit")) {
+            run(false);
+        }
+    }
+
+    private String printMessagesByState(String result, State targetState, Scanner scanner) {
+        while (!result.equals("quit") && state.equals(targetState)) {
             printPrompt();
             String line = scanner.nextLine();
             try {
@@ -48,21 +60,7 @@ public class ChessClient {
                 System.out.print(msg);
             }
         }
-        while (!result.equals("quit") && state.equals(State.LOGGEDIN)) {
-            printPrompt();
-            String line = scanner.nextLine();
-            try {
-                result = eval(line);
-                System.out.print(result);
-            } catch (Throwable e) {
-                var msg = e.toString();
-                System.out.println(msg);
-            }
-        }
-        System.out.println();
-        if(!result.equals("quit")) {
-            run(false);
-        }
+        return result;
     }
 
     private void printPrompt() {
@@ -90,6 +88,22 @@ public class ChessClient {
                     case "logout" -> logout();
                     default -> help();
                 };
+            } else if (state == State.PLAYINGGAME) {
+                return switch (cmd) {
+                    //case "r", "redraw" -> redraw();
+                    case "l", "leave" -> leave();
+                    //case "m", "move" -> makeMove(params);
+                    //case "resign" -> resign();
+                    //case "h", "highlight" -> highlight(params);
+                    default -> help();
+                };
+            } else if (state == State.WATCHINGGAME) {
+                return switch (cmd) {
+                    //case "r", "redraw" -> redraw();
+                    case "l", "leave" -> leave();
+                    //case "h", "highlight" -> highlight(params);
+                    default -> help();
+                };
             }
             return "";
         } catch (Exception e) {
@@ -102,7 +116,7 @@ public class ChessClient {
             String username = params[0];
             String password = params[1];
             String email = params[2];
-            var registerData = server.register(new model.RegisterRequest(username, password, email));
+            var registerData = server.register(new RegisterRequest(username, password, email));
             authToken = registerData.authToken();
             state = State.LOGGEDIN;
             return String.format("You registered as %s.", username);
@@ -114,7 +128,7 @@ public class ChessClient {
         if (params.length >= 2) {
             String username = params[0];
             String password = params[1];
-            var loginData = server.login(new model.LoginRequest(username, password));
+            var loginData = server.login(new LoginRequest(username, password));
             authToken = loginData.authToken();
             state = State.LOGGEDIN;
             return String.format("You logged in as %s.", username);
@@ -140,7 +154,7 @@ public class ChessClient {
     public String create(String... params) throws ServiceException {
         if (params.length >= 1) {
             String gameName = params[0];
-            var gameData = server.create(new model.CreateGameRequest(authToken, gameName));
+            var gameData = server.create(new CreateGameRequest(authToken, gameName));
             return String.format("Game started with ID %s.", gameData.gameID());
         }
         throw new ServiceException("Expected: <GAMENAME>", ServiceException.Code.BadRequestError);
@@ -165,6 +179,7 @@ public class ChessClient {
             }
             ListGamesResult gameList;
             gameList = server.join(new JoinGameRequest(authToken, color, gameID));
+            //state = State.PLAYINGGAME;
             return makeGrid(findGame(gameList, gameID), color == ChessGame.TeamColor.WHITE);
         }
         throw new ServiceException("Expected: <GAME ID> <COLOR>", ServiceException.Code.BadRequestError);
@@ -174,6 +189,7 @@ public class ChessClient {
         if(params.length >= 1) {
             int gameID = Integer.parseInt(params[0]);
             var gameList = server.watch(new JoinGameRequest(authToken, null, gameID));
+            state = State.WATCHINGGAME;
             return makeGrid(findGame(gameList, gameID), true);
         }
         throw new ServiceException("Expected: <GAME ID>", ServiceException.Code.BadRequestError);
@@ -275,9 +291,14 @@ public class ChessClient {
     }
 
     public String logout() throws ServiceException {
-        server.logout(new model.AuthorizationRequest(authToken));
+        server.logout(new AuthorizationRequest(authToken));
         state = State.LOGGEDOUT;
         return "Logout successful";
+    }
+
+    public String leave() {
+        state = State.LOGGEDIN;
+        return "Left the current game";
     }
 
     public String help() {
@@ -298,6 +319,25 @@ public class ChessClient {
                     Join a game: “j”, “join” <GAME ID> <COLOR>
                     Watch a game: “w”, “watch” <GAME ID>
                     Logout: “logout”
+                    Print help message: "h", "help"
+                    """;
+        } else if(state == State.PLAYINGGAME) {
+            result = """
+                    Options:
+                    Redraw chess board: "r", "redraw"
+                    Leave your game: "l", "leave"
+                    Make a move: "m", "move" <STARTING LOCATION> <ENDING LOCATION>
+                    Resign (forfeit): "resign"
+                    Highlight legal moves: "h", "highlight" <PIECE LOCATION>
+                    Print help message: "help"
+                    """;
+        } else if(state == State.WATCHINGGAME) {
+            result = """
+                    Options:
+                    Redraw chess board: "r", "redraw"
+                    Leave your game: "l", "leave"
+                    Highlight legal moves: "h", "highlight" <PIECE LOCATION>
+                    Print help message: "help"
                     """;
         }
         return SET_TEXT_COLOR_WHITE + result + SET_TEXT_COLOR_BLUE;
