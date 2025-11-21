@@ -17,5 +17,15 @@
     <orderEntry type="library" name="slf4j.simple" level="project" />
     <orderEntry type="library" name="mysql.connector.j" level="project" />
     <orderEntry type="library" name="mindrot.jbcrypt" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library name="glassfish.tyrus.bundles.standalone.client" type="repository">
+        <properties maven-id="org.glassfish.tyrus.bundles:tyrus-standalone-client:2.1.4" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/glassfish/tyrus/bundles/tyrus-standalone-client/2.1.4/tyrus-standalone-client-2.1.4.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
