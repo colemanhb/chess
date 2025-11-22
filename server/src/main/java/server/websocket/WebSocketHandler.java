@@ -2,19 +2,19 @@ package server.websocket;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
 import io.javalin.websocket.*;
 import org.jetbrains.annotations.NotNull;
 import websocket.commands.UserGameCommand;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.messages.ServerMessage;
 
-import javax.management.Notification;
 import java.io.IOException;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
     private final ConnectionManager connections = new ConnectionManager();
-    private DataAccess dataAccess;
+    private final DataAccess dataAccess;
 
     public WebSocketHandler(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
@@ -22,13 +22,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
 
     @Override
-    public void handleConnect(@NotNull WsConnectContext ctx) throws Exception {
+    public void handleConnect(@NotNull WsConnectContext ctx) {
         System.out.println("Websocket connected");
         ctx.enableAutomaticPings();
     }
 
     @Override
-    public void handleClose(@NotNull WsCloseContext ctx) throws Exception {
+    public void handleClose(@NotNull WsCloseContext ctx) {
         System.out.println("Websocket closed");
     }
 
@@ -47,12 +47,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private void connect(String authToken, int gameID, Session session) throws IOException {
+    private void connect(String authToken, int gameID, Session session) throws DataAccessException, IOException {
         connections.add(session);
-        dataAccess.
-        var username = "name";
-        var message = String.format("%s joined game %d", username, gameID);
-        var msg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.broadcast(session, msg);
+        var username = dataAccess.findAuth(authToken);
+        var notifString = String.format("%s joined game %d", username, gameID);
+        var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
+        connections.broadcast(session, notifMsg);
+        var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameID);
+        session.getRemote().sendString(new Gson().toJson(loadMsg));
     }
 }

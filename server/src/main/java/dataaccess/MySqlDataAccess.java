@@ -106,7 +106,7 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public String findAuth(String authKey) throws Exception{
+    public String findAuth(String authKey) throws DataAccessException{
         try (Connection conn = DatabaseManager.getConnection()) {
             var statement = "SELECT authToken, username FROM auth WHERE authToken=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
@@ -138,7 +138,7 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public void addAuth(AuthData authData) throws Exception {
+    public void addAuth(AuthData authData) throws DataAccessException {
         var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
         executeUpdate(statement, authData.authToken(), authData.username());
 
@@ -201,7 +201,7 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public void addPlayerToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws Exception {
+    public void addPlayerToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException {
         var username = findAuth(authToken);
         var statement = "";
         var gameData = getGame(gameID);

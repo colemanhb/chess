@@ -8,14 +8,14 @@ import model.UserData;
 import java.util.ArrayList;
 
 public interface DataAccess {
-    void saveUser(UserData userData) throws Exception;
+    void saveUser(UserData userData) throws DataAccessException;
     UserData getUser(String username) throws DataAccessException;
-    void clearData() throws Exception;
-    String findAuth(String authKey) throws Exception;
-    void deleteAuth(String authKey) throws Exception;
-    void addAuth(AuthData authData) throws Exception;
+    void clearData() throws DataAccessException;
+    String findAuth(String authKey) throws DataAccessException;
+    void deleteAuth(String authKey) throws DataAccessException;
+    void addAuth(AuthData authData) throws DataAccessException;
     ArrayList<GameData> listGames() throws DataAccessException;
-    int createGame(String gameName) throws Exception;
-    GameData getGame(int gameID) throws Exception;
-    void addPlayerToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws Exception;
+    int createGame(String gameName) throws DataAccessException;
+    GameData getGame(int gameID) throws DataAccessException;
+    void addPlayerToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException;
 }
