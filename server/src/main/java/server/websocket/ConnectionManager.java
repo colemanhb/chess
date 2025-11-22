@@ -1,9 +1,6 @@
 package server.websocket;
 
 import org.eclipse.jetty.websocket.api.Session;
-import websocket.commands.UserGameCommand;
-import websocket.commands.UserGameCommand;
-import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,12 +16,11 @@ public class ConnectionManager {
         connections.remove(session);
     }
 
-    public void broadcast(Session excludeSession, ServerMessage msg) throws IOException {
-        String message = msg.toString();
+    public void broadcast(Session excludeSession, String msg) throws IOException {
         for (Session c : connections.values()) {
             if (c.isOpen()) {
                 if (!c.equals(excludeSession)) {
-                    c.getRemote().sendString(message);
+                    c.getRemote().sendString(msg);
                 }
             }
         }

@@ -52,7 +52,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         var username = dataAccess.findAuth(authToken);
         var notifString = String.format("%s joined game %d", username, gameID);
         var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
-        connections.broadcast(session, notifMsg);
+        connections.broadcast(session, new Gson().toJson(notifMsg));
         var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameID);
         session.getRemote().sendString(new Gson().toJson(loadMsg));
     }
