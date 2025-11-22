@@ -5,19 +5,25 @@ import chess.ChessPosition;
 import model.*;
 import server.ServerFacade;
 import service.ServiceException;
+import websocket.NotificationHandler;
+import websocket.WebSocketFacade;
 
+import javax.management.Notification;
 import java.util.Arrays;
 import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
-public class ChessClient {
+public class ChessClient implements NotificationHandler {
+    private String username = null;
     private final ServerFacade server;
     private State state = State.LOGGEDOUT;
     private String authToken;
+    private final WebSocketFacade ws;
 
-    public ChessClient(String serverUrl) {
+    public ChessClient(String serverUrl) throws ServiceException {
         server = new ServerFacade(serverUrl);
+        ws = new WebSocketFacade(serverUrl,this);
     }
 
     public void run() {
@@ -119,6 +125,7 @@ public class ChessClient {
             var registerData = server.register(new RegisterRequest(username, password, email));
             authToken = registerData.authToken();
             state = State.LOGGEDIN;
+            this.username = username;
             return String.format("You registered as %s.", username);
         }
         throw new ServiceException("Expected: <USERNAME> <PASSWORD> <EMAIL>", ServiceException.Code.BadRequestError);
@@ -131,6 +138,7 @@ public class ChessClient {
             var loginData = server.login(new LoginRequest(username, password));
             authToken = loginData.authToken();
             state = State.LOGGEDIN;
+            this.username = username;
             return String.format("You logged in as %s.", username);
         }
         throw new ServiceException("Expected: <USERNAME> <PASSWORD>", ServiceException.Code.BadRequestError);
@@ -179,7 +187,8 @@ public class ChessClient {
             }
             ListGamesResult gameList;
             gameList = server.join(new JoinGameRequest(authToken, color, gameID));
-            //state = State.PLAYINGGAME;
+            state = State.PLAYINGGAME;
+            ws.join(authToken, gameID);
             return makeGrid(findGame(gameList, gameID), color == ChessGame.TeamColor.WHITE);
         }
         throw new ServiceException("Expected: <GAME ID> <COLOR>", ServiceException.Code.BadRequestError);
@@ -293,13 +302,23 @@ public class ChessClient {
     public String logout() throws ServiceException {
         server.logout(new AuthorizationRequest(authToken));
         state = State.LOGGEDOUT;
+        username = null;
         return "Logout successful";
     }
 
+    //public String redraw()
+
     public String leave() {
         state = State.LOGGEDIN;
-        return "Left the current game";
+        //ws.leave(username);
+        return String.format("%s left the current game", username);
     }
+
+    //public String makeMove()
+
+    //public String resign()
+
+    //public String highlight()
 
     public String help() {
         var result = "";
@@ -341,5 +360,10 @@ public class ChessClient {
                     """;
         }
         return SET_TEXT_COLOR_WHITE + result + SET_TEXT_COLOR_BLUE;
+    }
+
+    @Override
+    public void notify(Notification notification) {
+
     }
 }

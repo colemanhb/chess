@@ -5,18 +5,23 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
 import dataaccess.MySqlDataAccess;
+import io.javalin.websocket.WsConfig;
 import model.*;
 import io.javalin.*;
 import io.javalin.http.Context;
 import org.jetbrains.annotations.NotNull;
+import server.websocket.WebSocketHandler;
 import service.Service;
 import service.ServiceException;
 
 import java.util.Map;
+import java.util.function.Consumer;
+
 public class Server {
 
     private final Javalin httpHandler;
     private final Service service;
+    private final WebSocketHandler webSocketHandler;
 
     public Server() {
         DataAccess dataAccess;
@@ -27,6 +32,7 @@ public class Server {
             dataAccess = new MemoryDataAccess();
         }
         service = new Service(dataAccess);
+        webSocketHandler = new WebSocketHandler(dataAccess);
         httpHandler = Javalin.create(config -> config.staticFiles.add("web"))
         // Register your endpoints and exception handlers here.
                 .post("/user", this::register)
@@ -37,7 +43,12 @@ public class Server {
                 .put("/game", this::joinGame)
                 .delete("/db", this::clear)
                 .exception(ServiceException.class, this::exceptionHandler)
-                .exception(DataAccessException.class, this::exceptionHandler);
+                .exception(DataAccessException.class, this::exceptionHandler)
+                .ws("/ws", ws -> {
+                    ws.onConnect(webSocketHandler);
+                    ws.onMessage(webSocketHandler);
+                    ws.onClose(webSocketHandler);
+                });
     }
 
     private void joinGame(@NotNull Context ctx) throws Exception {

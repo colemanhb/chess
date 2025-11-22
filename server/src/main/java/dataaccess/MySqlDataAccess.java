@@ -84,6 +84,7 @@ public class MySqlDataAccess implements DataAccess{
         }
         return null;
     }
+
     private UserData readUser(ResultSet rs) throws DataAccessException {
         try {
             var username = rs.getString("username");
