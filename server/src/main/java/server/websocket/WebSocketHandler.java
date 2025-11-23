@@ -50,10 +50,17 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void connect(String authToken, int gameID, Session session) throws DataAccessException, IOException {
         connections.add(session);
         var username = dataAccess.findAuth(authToken);
-        var notifString = String.format("%s joined game %d", username, gameID);
-        var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
-        connections.broadcast(session, new Gson().toJson(notifMsg));
-        var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameID);
-        session.getRemote().sendString(new Gson().toJson(loadMsg));
+        if(dataAccess.listGames().size() >= gameID) {
+            var notifString = String.format("%s joined game %d", username, gameID);
+            var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
+            connections.broadcast(session, new Gson().toJson(notifMsg));
+            var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, Integer.toString(gameID));
+            session.getRemote().sendString(new Gson().toJson(loadMsg));
+        }
+        else {
+            var errorString = "cannot do that";
+            var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
+            session.getRemote().sendString(new Gson().toJson(errorMsg));
+        }
     }
 }
