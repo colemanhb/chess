@@ -50,17 +50,22 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void connect(String authToken, int gameID, Session session) throws DataAccessException, IOException {
         connections.add(session);
         var username = dataAccess.findAuth(authToken);
-        if(dataAccess.listGames().size() >= gameID) {
-            var notifString = String.format("%s joined game %d", username, gameID);
-            var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
-            connections.broadcast(session, new Gson().toJson(notifMsg));
-            var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, Integer.toString(gameID));
-            session.getRemote().sendString(new Gson().toJson(loadMsg));
-        }
-        else {
-            var errorString = "cannot do that";
+        if(dataAccess.listGames().size() < gameID) {
+            var errorString = "Invalid game ID";
             var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
             session.getRemote().sendString(new Gson().toJson(errorMsg));
+            return;
         }
+        if(dataAccess.findAuth(authToken) == null) {
+            var errorString = "Invalid auth token";
+            var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
+            session.getRemote().sendString(new Gson().toJson(errorMsg));
+            return;
+        }
+        var notifString = String.format("%s joined game %d", username, gameID);
+        var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
+        connections.broadcast(session, new Gson().toJson(notifMsg));
+        var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, Integer.toString(gameID));
+        session.getRemote().sendString(new Gson().toJson(loadMsg));
     }
 }
