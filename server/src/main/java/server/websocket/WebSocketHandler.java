@@ -84,6 +84,27 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             session.getRemote().sendString(new Gson().toJson(errorMsg));
             return;
         }
+        var currentBoard = game.getBoard();
+        if(currentBoard.getPiece(move.getStartPosition()) == null) {
+            var errorString = "Trying to move a nonexistent piece";
+            var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
+            session.getRemote().sendString(new Gson().toJson(errorMsg));
+            return;
+        } else if (currentBoard.getPiece(move.getStartPosition()).getTeamColor() != color) {
+            var errorString = "Trying to move the other team's piece";
+            var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
+            session.getRemote().sendString(new Gson().toJson(errorMsg));
+            return;
+        }
+        var validMoves = game.validMoves(move.getStartPosition());
+        if(!validMoves.contains(move.getEndPosition())) {
+            var errorString = "Invalid move";
+            var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
+            session.getRemote().sendString(new Gson().toJson(errorMsg));
+            return;
+        }
+        currentBoard.movePiece(move);
+
     }
 
     private void leave(String authToken, Session session) throws DataAccessException, IOException {
