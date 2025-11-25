@@ -11,6 +11,9 @@ import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 
+import static chess.ChessGame.TeamColor.BLACK;
+import static chess.ChessGame.TeamColor.WHITE;
+
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
     private final ConnectionManager connections = new ConnectionManager();
@@ -39,11 +42,40 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             switch(cmd.getCommandType()) {
                 case CONNECT -> connect(cmd.getAuthToken(), cmd.getGameID(), ctx.session);
                 //case MAKE_MOVE -> makeMove(cmd.getAuthToken(), ctx.session);
-                //case LEAVE -> leave(cmd.getAuthToken(), cmd.getGameID(), ctx.session);
+                case LEAVE -> leave(cmd.getAuthToken(), ctx.session);
                 //case RESIGN -> resign(cmd.getAuthToken(), cmd.getGameID(), ctx.session);
             }
         } catch(IOException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    private void leave(String authToken, Session session) throws DataAccessException, IOException {
+        connections.remove(session);
+        if(checkAuth(authToken, session)) {
+            return;
+        }
+        var username = dataAccess.findAuth(authToken);
+        var games = dataAccess.listGames();
+        var gameID = 0;
+        for(var game : games) {
+            if(game.blackUsername() != null && game.blackUsername().equals(username)) {
+                dataAccess.removeFromGame(game.gameID(), BLACK);
+                gameID = game.gameID();
+            }
+            if(game.whiteUsername() != null && game.whiteUsername().equals(username)) {
+                dataAccess.removeFromGame(game.gameID(), WHITE);
+                gameID = game.gameID();
+            }
+        }
+        if(gameID == 0) {
+            var notifString = String.format("%s left game %d", username, gameID);
+            var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
+            connections.broadcast(session, new Gson().toJson(notifMsg));
+        } else {
+            var notifString = String.format("%s stopped watching game", username);
+            var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
+            connections.broadcast(session, new Gson().toJson(notifMsg));
         }
     }
 
@@ -56,10 +88,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             session.getRemote().sendString(new Gson().toJson(errorMsg));
             return;
         }
-        if(dataAccess.findAuth(authToken) == null) {
-            var errorString = "Invalid auth token";
-            var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
-            session.getRemote().sendString(new Gson().toJson(errorMsg));
+        if(checkAuth(authToken, session)) {
             return;
         }
         var notifString = String.format("%s joined game %d", username, gameID);
@@ -67,5 +96,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.broadcast(session, new Gson().toJson(notifMsg));
         var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, Integer.toString(gameID));
         session.getRemote().sendString(new Gson().toJson(loadMsg));
+    }
+
+    private boolean checkAuth(String authToken, Session session) throws DataAccessException, IOException {
+        if(dataAccess.findAuth(authToken) == null) {
+            var errorString = "Invalid auth token";
+            var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
+            session.getRemote().sendString(new Gson().toJson(errorMsg));
+            return true;
+        }
+        return false;
     }
 }

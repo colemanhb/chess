@@ -10,7 +10,6 @@ import javax.swing.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.rmi.ServerError;
 
 public class WebSocketFacade extends Endpoint{
     Session session;
@@ -51,7 +50,13 @@ public class WebSocketFacade extends Endpoint{
         }
     }
 
-    public void leave(String username) {
+    public void leave(String authToken) throws ServiceException {
+        try {
+            var cmd = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken);
+            this.session.getBasicRemote().sendText(new Gson().toJson(cmd));
+        } catch (IOException ex) {
+            throw new ServiceException(ex.getMessage(), ServiceException.Code.ServerError);
+        }
     }
 
 

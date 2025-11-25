@@ -70,6 +70,19 @@ public class MemoryDataAccess implements DataAccess{
         }
     }
 
+    @Override
+    public void removeFromGame(int gameID, ChessGame.TeamColor teamColor) {
+        var oldGame = games.get(gameID);
+        GameData newGame = null;
+        if(teamColor == ChessGame.TeamColor.BLACK) {
+            newGame = new GameData(gameID, oldGame.whiteUsername(), null, oldGame.gameName(), oldGame.game());
+        }
+        if(teamColor == ChessGame.TeamColor.WHITE) {
+            newGame = new GameData(gameID, null, oldGame.blackUsername(), oldGame.gameName(), oldGame.game());
+        }
+        games.put(gameID, newGame);
+    }
+
     public void clearData() {
         users.clear();
         games.clear();

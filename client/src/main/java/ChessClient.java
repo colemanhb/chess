@@ -94,19 +94,12 @@ public class ChessClient implements NotificationHandler {
                     case "logout" -> logout();
                     default -> help();
                 };
-            } else if (state == State.PLAYINGGAME) {
+            } else if (state == State.PLAYINGGAME || state == State.WATCHINGGAME) {
                 return switch (cmd) {
                     //case "r", "redraw" -> redraw();
                     case "l", "leave" -> leave();
                     //case "m", "move" -> makeMove(params);
                     //case "resign" -> resign();
-                    //case "h", "highlight" -> highlight(params);
-                    default -> help();
-                };
-            } else if (state == State.WATCHINGGAME) {
-                return switch (cmd) {
-                    //case "r", "redraw" -> redraw();
-                    case "l", "leave" -> leave();
                     //case "h", "highlight" -> highlight(params);
                     default -> help();
                 };
@@ -308,9 +301,9 @@ public class ChessClient implements NotificationHandler {
 
     //public String redraw()
 
-    public String leave() {
+    public String leave() throws ServiceException {
         state = State.LOGGEDIN;
-        //ws.leave(username);
+        ws.leave(authToken);
         return String.format("%s left the current game", username);
     }
 
