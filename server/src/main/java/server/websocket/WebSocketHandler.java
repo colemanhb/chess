@@ -60,15 +60,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         var username = dataAccess.findAuth(authToken);
         var games = dataAccess.listGames();
         GameData gameData = null;
-        ChessGame.TeamColor color = null;
         for(var game : games) {
             if(game.blackUsername() != null && game.blackUsername().equals(username)) {
                 gameData = game;
-                color = BLACK;
             }
             if(game.whiteUsername() != null && game.whiteUsername().equals(username)) {
                 gameData = game;
-                color = WHITE;
             }
         }
         if(gameData == null) {
@@ -77,6 +74,20 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             session.getRemote().sendString(new Gson().toJson(errorMsg));
             return;
         }
+        if(gameData.game().gameOver()) {
+            var errorString = "Game is already over";
+            var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
+            session.getRemote().sendString(new Gson().toJson(errorMsg));
+            return;
+        }
+        var game = gameData.game();
+        game.setGameOver(true);
+        var newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
+        dataAccess.updateGame(newGameData);
+
+        var notifString = String.format("%s resigned from game %d", username, gameData.gameID());
+        var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
+        connections.broadcast(null, new Gson().toJson(notifMsg));
     }
 
     private void makeMove(String authToken, ChessMove move, Session session) throws IOException, DataAccessException {
@@ -110,6 +121,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             session.getRemote().sendString(new Gson().toJson(errorMsg));
             return;
         }
+        if(game.gameOver()) {
+            var errorString = "Trying to move when game is over";
+            var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
+            session.getRemote().sendString(new Gson().toJson(errorMsg));
+            return;
+        }
         var currentBoard = game.getBoard();
         if(currentBoard.getPiece(move.getStartPosition()) == null) {
             var errorString = "Trying to move a nonexistent piece";
@@ -131,11 +148,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         currentBoard.movePiece(move);
         game.setBoard(currentBoard);
-        if(color == BLACK) {
-            game.setTeamTurn(WHITE);
-        } else {
-            game.setTeamTurn(BLACK);
-        }
         var newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
         dataAccess.updateGame(newGameData);
 

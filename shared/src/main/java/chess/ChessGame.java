@@ -31,14 +31,21 @@ public class ChessGame {
     private TeamColor currentTeam;
     private ChessBoard board;
     private final Stack<ChessBoard> pastBoards;
+    private boolean gameOver;
 
     public ChessGame() {
         board = new ChessBoard();
         board.resetBoard();
         currentTeam = TeamColor.WHITE;
         pastBoards = new Stack<>();
+        gameOver = false;
     }
-
+    public boolean gameOver() {
+        return gameOver;
+    }
+    public void setGameOver(boolean bool) {
+        gameOver = bool;
+    }
     /**
      * @return Which team's turn it is
      */
@@ -344,6 +351,9 @@ public class ChessGame {
         switch(currentTeam) {
             case BLACK -> currentTeam = TeamColor.WHITE;
             case WHITE -> currentTeam = TeamColor.BLACK;
+        }
+        if(isInCheck(TeamColor.BLACK) || isInCheck(TeamColor.WHITE)) {
+            gameOver = true;
         }
     }
 
