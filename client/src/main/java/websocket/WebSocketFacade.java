@@ -95,7 +95,12 @@ public class WebSocketFacade extends Endpoint{
         return null;
     }
 
-
-
-    //join game function
+    public void resign(String authToken) throws ServiceException {
+        try {
+            var cmd = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken);
+            this.session.getBasicRemote().sendText(new Gson().toJson(cmd));
+        } catch (IOException ex) {
+            throw new ServiceException(ex.getMessage(), ServiceException.Code.ServerError);
+        }
+    }
 }

@@ -315,7 +315,10 @@ public class ChessClient implements NotificationHandler {
         return "";
     }
 
-    //public String resign()
+    public String resign() throws ServiceException {
+        ws.resign(authToken);
+        return "You resigned";
+    }
 
     //public String highlight()
 

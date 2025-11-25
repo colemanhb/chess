@@ -46,10 +46,36 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 case CONNECT -> connect(cmd.getAuthToken(), cmd.getGameID(), ctx.session);
                 case MAKE_MOVE -> makeMove(cmd.getAuthToken(), cmd.getMove(), ctx.session);
                 case LEAVE -> leave(cmd.getAuthToken(), ctx.session);
-                //case RESIGN -> resign(cmd.getAuthToken(), cmd.getGameID(), ctx.session);
+                case RESIGN -> resign(cmd.getAuthToken(), ctx.session);
             }
         } catch(IOException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    private void resign(String authToken, Session session) throws IOException, DataAccessException {
+        if(checkAuth(authToken, session)) {
+            return;
+        }
+        var username = dataAccess.findAuth(authToken);
+        var games = dataAccess.listGames();
+        GameData gameData = null;
+        ChessGame.TeamColor color = null;
+        for(var game : games) {
+            if(game.blackUsername() != null && game.blackUsername().equals(username)) {
+                gameData = game;
+                color = BLACK;
+            }
+            if(game.whiteUsername() != null && game.whiteUsername().equals(username)) {
+                gameData = game;
+                color = WHITE;
+            }
+        }
+        if(gameData == null) {
+            var errorString = "Trying to resign as an observer";
+            var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
+            session.getRemote().sendString(new Gson().toJson(errorMsg));
+            return;
         }
     }
 
