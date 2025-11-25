@@ -98,7 +98,7 @@ public class ChessClient implements NotificationHandler {
                 return switch (cmd) {
                     //case "r", "redraw" -> redraw();
                     case "l", "leave" -> leave();
-                    //case "m", "move" -> makeMove(params);
+                    case "m", "move" -> makeMove(params);
                     //case "resign" -> resign();
                     //case "h", "highlight" -> highlight(params);
                     default -> help();
@@ -304,10 +304,16 @@ public class ChessClient implements NotificationHandler {
     public String leave() throws ServiceException {
         state = State.LOGGEDIN;
         ws.leave(authToken);
-        return String.format("%s left the current game", username);
+        return String.format("%s left the game", username);
     }
 
-    //public String makeMove()
+    public String makeMove(String... params) throws ServiceException {
+        String start = params[0];
+        String end = params[1];
+        String promotion = params[2];
+        ws.makeMove(authToken, start, end, promotion);
+        return "";
+    }
 
     //public String resign()
 
@@ -338,7 +344,7 @@ public class ChessClient implements NotificationHandler {
                     Options:
                     Redraw chess board: "r", "redraw"
                     Leave your game: "l", "leave"
-                    Make a move: "m", "move" <STARTING LOCATION> <ENDING LOCATION>
+                    Make a move: "m", "move" <STARTING LOCATION> <ENDING LOCATION> <PROMOTION PIECE>
                     Resign (forfeit): "resign"
                     Highlight legal moves: "h", "highlight" <PIECE LOCATION>
                     Print help message: "help"
