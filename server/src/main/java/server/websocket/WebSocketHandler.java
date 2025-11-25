@@ -71,7 +71,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 color = WHITE;
             }
         }
-        assert gameData != null;
+        if(gameData == null) {
+            var errorString = "Trying to make a move as an observer";
+            var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
+            session.getRemote().sendString(new Gson().toJson(errorMsg));
+            return;
+        }
         var game = gameData.game();
         if(game.getTeamTurn() != color) {
             var errorString = "Trying to move out of turn";
