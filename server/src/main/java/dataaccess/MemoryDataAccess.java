@@ -83,6 +83,11 @@ public class MemoryDataAccess implements DataAccess{
         games.put(gameID, newGame);
     }
 
+    @Override
+    public void updateGame(GameData gameData) {
+        games.put(gameData.gameID(), gameData);
+    }
+
     public void clearData() {
         users.clear();
         games.clear();

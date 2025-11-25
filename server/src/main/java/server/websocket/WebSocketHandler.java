@@ -97,14 +97,28 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             return;
         }
         var validMoves = game.validMoves(move.getStartPosition());
-        if(!validMoves.contains(move.getEndPosition())) {
+        if(!validMoves.contains(move)) {
             var errorString = "Invalid move";
             var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
             session.getRemote().sendString(new Gson().toJson(errorMsg));
             return;
         }
         currentBoard.movePiece(move);
+        game.setBoard(currentBoard);
+        if(color == BLACK) {
+            game.setTeamTurn(WHITE);
+        } else {
+            game.setTeamTurn(BLACK);
+        }
+        var newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
+        dataAccess.updateGame(newGameData);
 
+        var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, Integer.toString(gameData.gameID()));
+        connections.broadcast(null, new Gson().toJson(loadMsg));
+
+        var notifString = String.format("%s moved from %s to %s", username, move.getStartPosition().toString(), move.getEndPosition().toString());
+        var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
+        connections.broadcast(session, new Gson().toJson(notifMsg));
     }
 
     private void leave(String authToken, Session session) throws DataAccessException, IOException {

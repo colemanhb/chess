@@ -290,4 +290,11 @@ public class MySqlDataAccess implements DataAccess{
         executeUpdate(statement, null, gameJson, gameID);
     }
 
+    @Override
+    public void updateGame(GameData gameData) throws DataAccessException {
+        var statement = "UPDATE game SET gameJSON=? WHERE gameID=?";
+        var gameJson = new Gson().toJson(gameData);
+        executeUpdate(statement, gameJson, gameData.gameID());
+    }
+
 }
