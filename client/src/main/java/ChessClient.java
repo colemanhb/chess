@@ -7,8 +7,8 @@ import server.ServerFacade;
 import service.ServiceException;
 import websocket.NotificationHandler;
 import websocket.WebSocketFacade;
+import websocket.messages.ServerMessage;
 
-import javax.management.Notification;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -100,7 +100,7 @@ public class ChessClient implements NotificationHandler {
                     //case "r", "redraw" -> redraw();
                     case "l", "leave" -> leave();
                     case "m", "move" -> makeMove(params);
-                    //case "resign" -> resign();
+                    case "resign" -> resign();
                     //case "h", "highlight" -> highlight(params);
                     default -> help();
                 };
@@ -313,7 +313,10 @@ public class ChessClient implements NotificationHandler {
     public String makeMove(String... params) throws ServiceException {
         String start = params[0];
         String end = params[1];
-        String promotion = params[2];
+        String promotion = null;
+        if(params.length > 2) {
+            promotion = params[2];
+        }
         ws.makeMove(authToken, currentGame, start, end, promotion);
         return "";
     }
@@ -368,7 +371,12 @@ public class ChessClient implements NotificationHandler {
     }
 
     @Override
-    public void notify(Notification notification) {
-
+    public void notify(ServerMessage msg) {
+        switch(msg.getServerMessageType()) {
+            case LOAD_GAME -> System.out.println("PRINT GAME HERE");//System.out.println(redraw(authToken, currentGame));
+            case ERROR -> System.out.println(SET_TEXT_COLOR_RED + msg.getErrorMessage());
+            case NOTIFICATION -> System.out.println(SET_TEXT_COLOR_RED + msg.getMessage());
+        }
+        printPrompt();
     }
 }

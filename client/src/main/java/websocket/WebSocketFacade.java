@@ -7,8 +7,8 @@ import com.google.gson.Gson;
 import jakarta.websocket.*;
 import service.ServiceException;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
-import javax.management.Notification;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -26,9 +26,12 @@ public class WebSocketFacade extends Endpoint{
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             this.session = container.connectToServer(this, socketURI);
 
-            this.session.addMessageHandler((MessageHandler.Whole<String>) message -> {
-                Notification notification = new Gson().fromJson(message, Notification.class);
-                notificationHandler.notify(notification);
+            this.session.addMessageHandler(new MessageHandler.Whole<String>() {
+                @Override
+                public void onMessage(String message) {
+                    ServerMessage msg = new Gson().fromJson(message, ServerMessage.class);
+                    notificationHandler.notify(msg);
+                }
             });
         } catch (DeploymentException | IOException | URISyntaxException ex) {
             throw new ServiceException(ex.getMessage(), ServiceException.Code.ServerError);
