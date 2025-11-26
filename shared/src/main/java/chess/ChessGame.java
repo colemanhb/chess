@@ -348,11 +348,12 @@ public class ChessGame {
                 board.removePiece(enemyPosition);
             }
         }
-        switch(currentTeam) {
-            case BLACK -> currentTeam = TeamColor.WHITE;
-            case WHITE -> currentTeam = TeamColor.BLACK;
+        if(currentTeam == TeamColor.BLACK) {
+            currentTeam = TeamColor.WHITE;
+        } else if(currentTeam == TeamColor.WHITE) {
+            currentTeam = TeamColor.BLACK;
         }
-        if(isInCheck(TeamColor.BLACK) || isInCheck(TeamColor.WHITE)) {
+        if(isInCheck(TeamColor.WHITE) || isInCheck(TeamColor.BLACK)) {
             gameOver = true;
         }
     }

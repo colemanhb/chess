@@ -27,17 +27,10 @@ public class UserGameCommand {
         move = null;
     }
 
-    public UserGameCommand(CommandType commandType, String authToken) {
+    public UserGameCommand(CommandType commandType, String authToken, int gameID, ChessMove move) {
         this.commandType = commandType;
         this.authToken = authToken;
-        gameID = null;
-        move = null;
-    }
-
-    public UserGameCommand(CommandType commandType, String authToken, ChessMove move) {
-        this.commandType = commandType;
-        this.authToken = authToken;
-        gameID = null;
+        this.gameID = gameID;
         this.move = move;
     }
 

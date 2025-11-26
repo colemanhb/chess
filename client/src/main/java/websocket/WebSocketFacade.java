@@ -9,7 +9,6 @@ import service.ServiceException;
 import websocket.commands.UserGameCommand;
 
 import javax.management.Notification;
-import javax.swing.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,12 +26,9 @@ public class WebSocketFacade extends Endpoint{
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             this.session = container.connectToServer(this, socketURI);
 
-            this.session.addMessageHandler(new MessageHandler.Whole<String>() {
-                @Override
-                public void onMessage(String message) {
-                    Notification notification = new Gson().fromJson(message, Notification.class);
-                    notificationHandler.notify(notification);
-                }
+            this.session.addMessageHandler((MessageHandler.Whole<String>) message -> {
+                Notification notification = new Gson().fromJson(message, Notification.class);
+                notificationHandler.notify(notification);
             });
         } catch (DeploymentException | IOException | URISyntaxException ex) {
             throw new ServiceException(ex.getMessage(), ServiceException.Code.ServerError);
@@ -53,16 +49,16 @@ public class WebSocketFacade extends Endpoint{
         }
     }
 
-    public void leave(String authToken) throws ServiceException {
+    public void leave(String authToken, int gameID) throws ServiceException {
         try {
-            var cmd = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken);
+            var cmd = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID);
             this.session.getBasicRemote().sendText(new Gson().toJson(cmd));
         } catch (IOException ex) {
             throw new ServiceException(ex.getMessage(), ServiceException.Code.ServerError);
         }
     }
 
-    public void makeMove(String authToken, String start, String end, String promotion) throws ServiceException {
+    public void makeMove(String authToken, int currentGame, String start, String end, String promotion) throws ServiceException {
         var startingLocation = stringToLocation(start);
         var endingLocation = stringToLocation(end);
         ChessPiece.PieceType promotionPiece = null;
@@ -72,7 +68,7 @@ public class WebSocketFacade extends Endpoint{
         }
         var chessMove = new ChessMove(startingLocation, endingLocation, promotionPiece);
         try {
-            var cmd = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, chessMove);
+            var cmd = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, currentGame, chessMove);
             this.session.getBasicRemote().sendText(new Gson().toJson(cmd));
         } catch (IOException ex) {
             throw new ServiceException(ex.getMessage(), ServiceException.Code.ServerError);
@@ -95,9 +91,9 @@ public class WebSocketFacade extends Endpoint{
         return null;
     }
 
-    public void resign(String authToken) throws ServiceException {
+    public void resign(String authToken, int currentGame) throws ServiceException {
         try {
-            var cmd = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken);
+            var cmd = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, currentGame);
             this.session.getBasicRemote().sendText(new Gson().toJson(cmd));
         } catch (IOException ex) {
             throw new ServiceException(ex.getMessage(), ServiceException.Code.ServerError);

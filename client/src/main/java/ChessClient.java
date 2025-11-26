@@ -20,6 +20,7 @@ public class ChessClient implements NotificationHandler {
     private State state = State.LOGGEDOUT;
     private String authToken;
     private final WebSocketFacade ws;
+    private int currentGame = 0;
 
     public ChessClient(String serverUrl) throws ServiceException {
         server = new ServerFacade(serverUrl);
@@ -182,6 +183,7 @@ public class ChessClient implements NotificationHandler {
             gameList = server.join(new JoinGameRequest(authToken, color, gameID));
             state = State.PLAYINGGAME;
             ws.join(authToken, gameID);
+            currentGame = gameID;
             return makeGrid(findGame(gameList, gameID), color == ChessGame.TeamColor.WHITE);
         }
         throw new ServiceException("Expected: <GAME ID> <COLOR>", ServiceException.Code.BadRequestError);
@@ -192,6 +194,7 @@ public class ChessClient implements NotificationHandler {
             int gameID = Integer.parseInt(params[0]);
             var gameList = server.watch(new JoinGameRequest(authToken, null, gameID));
             state = State.WATCHINGGAME;
+            currentGame = gameID;
             return makeGrid(findGame(gameList, gameID), true);
         }
         throw new ServiceException("Expected: <GAME ID>", ServiceException.Code.BadRequestError);
@@ -303,7 +306,7 @@ public class ChessClient implements NotificationHandler {
 
     public String leave() throws ServiceException {
         state = State.LOGGEDIN;
-        ws.leave(authToken);
+        ws.leave(authToken, currentGame);
         return String.format("%s left the game", username);
     }
 
@@ -311,12 +314,12 @@ public class ChessClient implements NotificationHandler {
         String start = params[0];
         String end = params[1];
         String promotion = params[2];
-        ws.makeMove(authToken, start, end, promotion);
+        ws.makeMove(authToken, currentGame, start, end, promotion);
         return "";
     }
 
     public String resign() throws ServiceException {
-        ws.resign(authToken);
+        ws.resign(authToken, currentGame);
         return "You resigned";
     }
 

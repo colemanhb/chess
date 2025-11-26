@@ -2,6 +2,7 @@ package server.websocket;
 
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
@@ -13,6 +14,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import static chess.ChessGame.TeamColor.BLACK;
 import static chess.ChessGame.TeamColor.WHITE;
@@ -44,31 +46,22 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             UserGameCommand cmd = new Gson().fromJson(ctx.message(), UserGameCommand.class);
             switch(cmd.getCommandType()) {
                 case CONNECT -> connect(cmd.getAuthToken(), cmd.getGameID(), ctx.session);
-                case MAKE_MOVE -> makeMove(cmd.getAuthToken(), cmd.getMove(), ctx.session);
-                case LEAVE -> leave(cmd.getAuthToken(), ctx.session);
-                case RESIGN -> resign(cmd.getAuthToken(), ctx.session);
+                case MAKE_MOVE -> makeMove(cmd.getAuthToken(), cmd.getGameID(), cmd.getMove(), ctx.session);
+                case LEAVE -> leave(cmd.getAuthToken(), cmd.getGameID(), ctx.session);
+                case RESIGN -> resign(cmd.getAuthToken(), cmd.getGameID(), ctx.session);
             }
         } catch(IOException ex) {
             ex.printStackTrace();
         }
     }
 
-    private void resign(String authToken, Session session) throws IOException, DataAccessException {
+    private void resign(String authToken, Integer gameID, Session session) throws IOException, DataAccessException {
         if(checkAuth(authToken, session)) {
             return;
         }
         var username = dataAccess.findAuth(authToken);
-        var games = dataAccess.listGames();
-        GameData gameData = null;
-        for(var game : games) {
-            if(game.blackUsername() != null && game.blackUsername().equals(username)) {
-                gameData = game;
-            }
-            if(game.whiteUsername() != null && game.whiteUsername().equals(username)) {
-                gameData = game;
-            }
-        }
-        if(gameData == null) {
+        GameData gameData = dataAccess.getGame(gameID);
+        if(!Objects.equals(gameData.blackUsername(), username) && !Objects.equals(gameData.whiteUsername(), username)) {
             var errorString = "Trying to resign as an observer";
             var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
             session.getRemote().sendString(new Gson().toJson(errorMsg));
@@ -87,28 +80,22 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
         var notifString = String.format("%s resigned from game %d", username, gameData.gameID());
         var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
-        connections.broadcast(null, new Gson().toJson(notifMsg));
+        connections.broadcast(null, new Gson().toJson(notifMsg), gameData.gameID());
     }
 
-    private void makeMove(String authToken, ChessMove move, Session session) throws IOException, DataAccessException {
+    private void makeMove(String authToken, Integer gameID, ChessMove move, Session session) throws IOException, DataAccessException, InvalidMoveException {
         if(checkAuth(authToken, session)) {
             return;
         }
         var username = dataAccess.findAuth(authToken);
-        var games = dataAccess.listGames();
-        GameData gameData = null;
+        GameData gameData = dataAccess.getGame(gameID);
         ChessGame.TeamColor color = null;
-        for(var game : games) {
-            if(game.blackUsername() != null && game.blackUsername().equals(username)) {
-                gameData = game;
-                color = BLACK;
-            }
-            if(game.whiteUsername() != null && game.whiteUsername().equals(username)) {
-                gameData = game;
-                color = WHITE;
-            }
+        if(Objects.equals(gameData.whiteUsername(), username)) {
+            color = WHITE;
+        } else if(Objects.equals(gameData.blackUsername(), username)) {
+            color = BLACK;
         }
-        if(gameData == null) {
+        if(color == null) {
             var errorString = "Trying to make a move as an observer";
             var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
             session.getRemote().sendString(new Gson().toJson(errorMsg));
@@ -146,50 +133,48 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             session.getRemote().sendString(new Gson().toJson(errorMsg));
             return;
         }
-        currentBoard.movePiece(move);
-        game.setBoard(currentBoard);
-        var newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
+        game.makeMove(move);
+        var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
         dataAccess.updateGame(newGameData);
 
         var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, Integer.toString(gameData.gameID()));
-        connections.broadcast(null, new Gson().toJson(loadMsg));
+        connections.broadcast(null, new Gson().toJson(loadMsg), gameData.gameID());
 
         var notifString = String.format("%s moved from %s to %s", username, move.getStartPosition().toString(), move.getEndPosition().toString());
         var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
-        connections.broadcast(session, new Gson().toJson(notifMsg));
+        connections.broadcast(session, new Gson().toJson(notifMsg), gameData.gameID());
     }
 
-    private void leave(String authToken, Session session) throws DataAccessException, IOException {
+    private void leave(String authToken, Integer gameID, Session session) throws DataAccessException, IOException {
         connections.remove(session);
         if(checkAuth(authToken, session)) {
             return;
         }
         var username = dataAccess.findAuth(authToken);
-        var games = dataAccess.listGames();
-        var gameID = 0;
-        for(var game : games) {
-            if(game.blackUsername() != null && game.blackUsername().equals(username)) {
-                dataAccess.removeFromGame(game.gameID(), BLACK);
-                gameID = game.gameID();
-            }
-            if(game.whiteUsername() != null && game.whiteUsername().equals(username)) {
-                dataAccess.removeFromGame(game.gameID(), WHITE);
-                gameID = game.gameID();
-            }
+        var game = dataAccess.getGame(gameID);
+        var player = true;
+        if(game.blackUsername() != null && game.blackUsername().equals(username)) {
+            dataAccess.removeFromGame(game.gameID(), BLACK);
         }
-        if(gameID == 0) {
+        else if(game.whiteUsername() != null && game.whiteUsername().equals(username)) {
+            dataAccess.removeFromGame(game.gameID(), WHITE);
+        }
+        else {
+            player = false;
+        }
+        if(player) {
             var notifString = String.format("%s left game %d", username, gameID);
             var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
-            connections.broadcast(session, new Gson().toJson(notifMsg));
+            connections.broadcast(session, new Gson().toJson(notifMsg), gameID);
         } else {
-            var notifString = String.format("%s stopped watching game", username);
+            var notifString = String.format("%s stopped watching game %d", username, gameID);
             var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
-            connections.broadcast(session, new Gson().toJson(notifMsg));
+            connections.broadcast(session, new Gson().toJson(notifMsg), gameID);
         }
     }
 
     private void connect(String authToken, int gameID, Session session) throws DataAccessException, IOException {
-        connections.add(session);
+        connections.add(session, gameID);
         var username = dataAccess.findAuth(authToken);
         if(dataAccess.listGames().size() < gameID) {
             var errorString = "Invalid game ID";
@@ -202,7 +187,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         var notifString = String.format("%s joined game %d", username, gameID);
         var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
-        connections.broadcast(session, new Gson().toJson(notifMsg));
+        connections.broadcast(session, new Gson().toJson(notifMsg), gameID);
         var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, Integer.toString(gameID));
         session.getRemote().sendString(new Gson().toJson(loadMsg));
     }
