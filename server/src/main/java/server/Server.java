@@ -5,7 +5,6 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
 import dataaccess.MySqlDataAccess;
-import io.javalin.websocket.WsConfig;
 import model.*;
 import io.javalin.*;
 import io.javalin.http.Context;
@@ -15,7 +14,6 @@ import service.Service;
 import service.ServiceException;
 
 import java.util.Map;
-import java.util.function.Consumer;
 
 public class Server {
 

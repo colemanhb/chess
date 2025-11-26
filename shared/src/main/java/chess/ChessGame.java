@@ -40,6 +40,11 @@ public class ChessGame {
         pastBoards = new Stack<>();
         gameOver = false;
     }
+    public ChessGame(ChessBoard board) {
+        this.board = board;
+        pastBoards = new Stack<>();
+        gameOver = false;
+    }
     public boolean gameOver() {
         return gameOver;
     }

@@ -44,6 +44,10 @@ public class ServerMessage {
         return errorMessage;
     }
 
+    public String getGame() {
+        return game;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

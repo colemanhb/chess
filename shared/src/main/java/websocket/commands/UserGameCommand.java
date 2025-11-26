@@ -13,11 +13,8 @@ import java.util.Objects;
 public class UserGameCommand {
 
     private final CommandType commandType;
-
     private final String authToken;
-
     private final Integer gameID;
-
     private final ChessMove move;
 
     public UserGameCommand(CommandType commandType, String authToken, Integer gameID) {
@@ -38,7 +35,7 @@ public class UserGameCommand {
         CONNECT,
         MAKE_MOVE,
         LEAVE,
-        RESIGN
+        RESIGN,
     }
 
     public CommandType getCommandType() {

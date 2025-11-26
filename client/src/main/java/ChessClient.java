@@ -1,7 +1,4 @@
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 import model.*;
 import server.ServerFacade;
 import service.ServiceException;
@@ -21,6 +18,7 @@ public class ChessClient implements NotificationHandler {
     private String authToken;
     private final WebSocketFacade ws;
     private int currentGame = 0;
+    private ChessGame.TeamColor teamColor = null;
 
     public ChessClient(String serverUrl) throws ServiceException {
         server = new ServerFacade(serverUrl);
@@ -96,14 +94,20 @@ public class ChessClient implements NotificationHandler {
                     default -> help();
                 };
             } else if (state == State.PLAYINGGAME || state == State.WATCHINGGAME) {
-                return switch (cmd) {
-                    //case "r", "redraw" -> redraw();
+                switch (cmd) {
+                    case "r", "redraw" -> {
+                        return redraw(false,(String) null);
+                    }
                     case "l", "leave" -> leave();
                     case "m", "move" -> makeMove(params);
                     case "resign" -> resign();
-                    //case "h", "highlight" -> highlight(params);
-                    default -> help();
-                };
+                    case "highlight" -> {
+                        return redraw(true, params);
+                    }
+                    default -> {
+                        return help();
+                    }
+                }
             }
             return "";
         } catch (Exception e) {
@@ -184,6 +188,7 @@ public class ChessClient implements NotificationHandler {
             state = State.PLAYINGGAME;
             ws.join(authToken, gameID);
             currentGame = gameID;
+            teamColor = color;
             return makeGrid(findGame(gameList, gameID), color == ChessGame.TeamColor.WHITE);
         }
         throw new ServiceException("Expected: <GAME ID> <COLOR>", ServiceException.Code.BadRequestError);
@@ -195,6 +200,7 @@ public class ChessClient implements NotificationHandler {
             var gameList = server.watch(new JoinGameRequest(authToken, null, gameID));
             state = State.WATCHINGGAME;
             currentGame = gameID;
+            teamColor = ChessGame.TeamColor.WHITE;
             return makeGrid(findGame(gameList, gameID), true);
         }
         throw new ServiceException("Expected: <GAME ID>", ServiceException.Code.BadRequestError);
@@ -234,6 +240,33 @@ public class ChessClient implements NotificationHandler {
         return result.toString();
     }
 
+    private String makeGrid(ChessBoard board, boolean whiteSide, ChessPosition highlightPosition) {
+        var highlight = highlightPosition != null;
+        var tempGame = new ChessGame(board);
+        var validMoves = tempGame.validMoves(highlightPosition);
+        StringBuilder result = new StringBuilder();
+        result.append(makeLetterLabels(whiteSide)).append("\n");
+        var row = 0;
+        var col = 0;
+        for(int i = 1; i <= 8; i ++) {
+            for(int j = 1; j <= 8; j ++) {
+                row = i;
+                col = j;
+                if(whiteSide) {
+                    row = 9 - i;
+                }
+                if(j == 1) {
+                    result.append(" ").append(row).append(" ");
+                }
+                result.append(makeSquare(board, new ChessPosition(row,col), highlight && validMoves.contains(new ChessMove(highlightPosition, new ChessPosition(row,col), null))));
+            }
+            result.append(RESET_BG_COLOR + SET_TEXT_COLOR_WHITE);
+            result.append(" ").append(row).append(" ").append("\n");
+        }
+        result.append(makeLetterLabels(whiteSide));
+        return result.toString();
+    }
+
     private String makeLetterLabels(boolean forwards) {
         if(forwards) {
             return RESET_BG_COLOR + SET_TEXT_COLOR_WHITE + "    a  b  c  d  e  f  g  h   ";
@@ -253,6 +286,42 @@ public class ChessClient implements NotificationHandler {
         }
         else {
             result.append(SET_BG_COLOR_DARK_GREY);
+        }
+        if(piece != null) {
+            if(piece.getTeamColor() == ChessGame.TeamColor.BLACK) {
+                result.append(SET_TEXT_COLOR_BLACK);
+            }
+            else {
+                result.append(SET_TEXT_COLOR_WHITE);
+            }
+            result.append(visualizePiece(piece));
+        }
+        else {
+            result.append("   ");
+        }
+        return result.toString();
+    }
+
+    private String makeSquare(ChessBoard board, ChessPosition position, boolean highlight) {
+        var piece = board.getPiece(position);
+        var row = position.getRow();
+        var col = position.getColumn();
+        StringBuilder result = new StringBuilder();
+        if((row + col) % 2 == 1) {
+            if(highlight) {
+                result.append(SET_BG_COLOR_YELLOW);
+            }
+            else {
+                result.append(SET_BG_COLOR_LIGHT_GREY);
+            }
+        }
+        else {
+            if(highlight) {
+                result.append(SET_BG_COLOR_GREEN);
+            }
+            else {
+                result.append(SET_BG_COLOR_DARK_GREY);
+            }
         }
         if(piece != null) {
             if(piece.getTeamColor() == ChessGame.TeamColor.BLACK) {
@@ -302,31 +371,64 @@ public class ChessClient implements NotificationHandler {
         return "Logout successful";
     }
 
-    //public String redraw()
-
-    public String leave() throws ServiceException {
+    public void leave() throws ServiceException {
         state = State.LOGGEDIN;
         ws.leave(authToken, currentGame);
-        return String.format("%s left the game", username);
     }
 
-    public String makeMove(String... params) throws ServiceException {
+    public void makeMove(String... params) throws ServiceException {
         String start = params[0];
         String end = params[1];
         String promotion = null;
         if(params.length > 2) {
             promotion = params[2];
         }
-        ws.makeMove(authToken, currentGame, start, end, promotion);
-        return "";
+        var startingLocation = stringToLocation(start);
+        var endingLocation = stringToLocation(end);
+        ChessPiece.PieceType promotionPiece = null;
+        try {
+            promotionPiece = ChessPiece.PieceType.valueOf(promotion);
+        } catch(Exception _) {
+        }
+        var chessMove = new ChessMove(startingLocation, endingLocation, promotionPiece);
+        ws.makeMove(authToken, currentGame, chessMove);
     }
 
-    public String resign() throws ServiceException {
+    public void resign() throws ServiceException {
         ws.resign(authToken, currentGame);
-        return "You resigned";
     }
 
-    //public String highlight()
+    private String redraw(boolean highlight, String... params) throws ServiceException {
+        String highlightString = null;
+        if(highlight && params.length == 0) {
+            throw new ServiceException("Expected: <PIECE LOCATION>", ServiceException.Code.BadRequestError);
+        }
+        if(params.length > 0) {
+            highlightString = params[0];
+        }
+        var games = server.list(new AuthorizationRequest(authToken));
+        var game = findGame(games, currentGame);
+        ChessPosition highlightPosition = null;
+        if(highlight) {
+            highlightPosition = stringToLocation(highlightString);
+        }
+        return makeGrid(game, teamColor == ChessGame.TeamColor.WHITE, highlightPosition);
+    }
+
+    private ChessPosition stringToLocation(String str) {
+        str = str.toLowerCase();
+        var letter = str.charAt(0);
+        var number = str.charAt(1);
+        if(!Character.isLetter(letter) || !Character.isDigit(number)) {
+            return null;
+        }
+        var row = Integer.parseInt(String.valueOf(number));
+        var col = (int) letter - 96;
+        if(row >= 1 && col >= 1 && row <= 8 && col <= 8) {
+            return new ChessPosition(row, col);
+        }
+        return null;
+    }
 
     public String help() {
         var result = "";
@@ -363,8 +465,8 @@ public class ChessClient implements NotificationHandler {
                     Options:
                     Redraw chess board: "r", "redraw"
                     Leave your game: "l", "leave"
-                    Highlight legal moves: "h", "highlight" <PIECE LOCATION>
-                    Print help message: "help"
+                    Highlight legal moves: "highlight" <PIECE LOCATION>
+                    Print help message: "h", "help"
                     """;
         }
         return SET_TEXT_COLOR_WHITE + result + SET_TEXT_COLOR_BLUE;
@@ -373,7 +475,14 @@ public class ChessClient implements NotificationHandler {
     @Override
     public void notify(ServerMessage msg) {
         switch(msg.getServerMessageType()) {
-            case LOAD_GAME -> System.out.println("PRINT GAME HERE");//System.out.println(redraw(authToken, currentGame));
+            case LOAD_GAME -> {
+                try {
+                    System.out.println(redraw(false, (String) null));
+                } catch (ServiceException e) {
+                    System.out.println(e.getMessage());
+                }
+
+            }
             case ERROR -> System.out.println(SET_TEXT_COLOR_RED + msg.getErrorMessage());
             case NOTIFICATION -> System.out.println(SET_TEXT_COLOR_RED + msg.getMessage());
         }

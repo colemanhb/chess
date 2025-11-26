@@ -1,7 +1,6 @@
 package websocket;
 
 import chess.ChessMove;
-import chess.ChessPiece;
 import chess.ChessPosition;
 import com.google.gson.Gson;
 import jakarta.websocket.*;
@@ -30,7 +29,11 @@ public class WebSocketFacade extends Endpoint{
                 @Override
                 public void onMessage(String message) {
                     ServerMessage msg = new Gson().fromJson(message, ServerMessage.class);
-                    notificationHandler.notify(msg);
+                    try {
+                        notificationHandler.notify(msg);
+                    } catch (ServiceException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             });
         } catch (DeploymentException | IOException | URISyntaxException ex) {
@@ -61,15 +64,7 @@ public class WebSocketFacade extends Endpoint{
         }
     }
 
-    public void makeMove(String authToken, int currentGame, String start, String end, String promotion) throws ServiceException {
-        var startingLocation = stringToLocation(start);
-        var endingLocation = stringToLocation(end);
-        ChessPiece.PieceType promotionPiece = null;
-        try {
-            promotionPiece = ChessPiece.PieceType.valueOf(promotion);
-        } catch(Exception _) {
-        }
-        var chessMove = new ChessMove(startingLocation, endingLocation, promotionPiece);
+    public void makeMove(String authToken, int currentGame, ChessMove chessMove) throws ServiceException {
         try {
             var cmd = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, currentGame, chessMove);
             this.session.getBasicRemote().sendText(new Gson().toJson(cmd));
@@ -77,21 +72,6 @@ public class WebSocketFacade extends Endpoint{
             throw new ServiceException(ex.getMessage(), ServiceException.Code.ServerError);
         }
 
-    }
-
-    private ChessPosition stringToLocation(String str) {
-        str = str.toLowerCase();
-        var letter = str.charAt(0);
-        var number = str.charAt(1);
-        if(!Character.isLetter(letter) || !Character.isDigit(number)) {
-            return null;
-        }
-        var row = Integer.parseInt(String.valueOf(number));
-        var col = (int) letter - 96;
-        if(row >= 1 && col >= 1 && row <= 8 && col <= 8) {
-            return new ChessPosition(row, col);
-        }
-        return null;
     }
 
     public void resign(String authToken, int currentGame) throws ServiceException {
