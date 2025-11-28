@@ -7,12 +7,12 @@ import websocket.WebSocketFacade;
 import websocket.messages.ServerMessage;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
 public class ChessClient implements NotificationHandler {
-    private String username = null;
     private final ServerFacade server;
     private State state = State.LOGGEDOUT;
     private String authToken;
@@ -123,7 +123,6 @@ public class ChessClient implements NotificationHandler {
             var registerData = server.register(new RegisterRequest(username, password, email));
             authToken = registerData.authToken();
             state = State.LOGGEDIN;
-            this.username = username;
             return String.format("You registered as %s.", username);
         }
         throw new ServiceException("Expected: <USERNAME> <PASSWORD> <EMAIL>", ServiceException.Code.BadRequestError);
@@ -136,7 +135,6 @@ public class ChessClient implements NotificationHandler {
             var loginData = server.login(new LoginRequest(username, password));
             authToken = loginData.authToken();
             state = State.LOGGEDIN;
-            this.username = username;
             return String.format("You logged in as %s.", username);
         }
         throw new ServiceException("Expected: <USERNAME> <PASSWORD>", ServiceException.Code.BadRequestError);
@@ -183,13 +181,12 @@ public class ChessClient implements NotificationHandler {
             } catch (Exception e) {
                 throw new ServiceException("Invalid color", ServiceException.Code.BadRequestError);
             }
-            ListGamesResult gameList;
-            gameList = server.join(new JoinGameRequest(authToken, color, gameID));
+            server.join(new JoinGameRequest(authToken, color, gameID));
             state = State.PLAYINGGAME;
             ws.join(authToken, gameID);
             currentGame = gameID;
             teamColor = color;
-            return makeGrid(findGame(gameList, gameID), color == ChessGame.TeamColor.WHITE);
+            return "";
         }
         throw new ServiceException("Expected: <GAME ID> <COLOR>", ServiceException.Code.BadRequestError);
     }
@@ -201,7 +198,7 @@ public class ChessClient implements NotificationHandler {
             state = State.WATCHINGGAME;
             currentGame = gameID;
             teamColor = ChessGame.TeamColor.WHITE;
-            return makeGrid(findGame(gameList, gameID), true);
+            return makeGrid(findGame(gameList, gameID), true, null);
         }
         throw new ServiceException("Expected: <GAME ID>", ServiceException.Code.BadRequestError);
     }
@@ -215,35 +212,14 @@ public class ChessClient implements NotificationHandler {
         return null;
     }
 
-
-    private String makeGrid(ChessBoard board, boolean whiteSide) {
-        StringBuilder result = new StringBuilder();
-        result.append(makeLetterLabels(whiteSide)).append("\n");
-        var row = 0;
-        var col = 0;
-        for(int i = 1; i <= 8; i ++) {
-            for(int j = 1; j <= 8; j ++) {
-                row = i;
-                col = j;
-                if(whiteSide) {
-                    row = 9 - i;
-                }
-                if(j == 1) {
-                    result.append(" ").append(row).append(" ");
-                }
-                result.append(makeSquare(board, new ChessPosition(row,col)));
-            }
-            result.append(RESET_BG_COLOR + SET_TEXT_COLOR_WHITE);
-            result.append(" ").append(row).append(" ").append("\n");
-        }
-        result.append(makeLetterLabels(whiteSide));
-        return result.toString();
-    }
-
     private String makeGrid(ChessBoard board, boolean whiteSide, ChessPosition highlightPosition) {
         var highlight = highlightPosition != null;
-        var tempGame = new ChessGame(board);
-        var validMoves = tempGame.validMoves(highlightPosition);
+        ChessGame tempGame;
+        Collection<ChessMove> validMoves = null;
+        if(highlight) {
+            tempGame = new ChessGame(board);
+            validMoves = tempGame.validMoves(highlightPosition);
+        }
         StringBuilder result = new StringBuilder();
         result.append(makeLetterLabels(whiteSide)).append("\n");
         var row = 0;
@@ -258,7 +234,16 @@ public class ChessClient implements NotificationHandler {
                 if(j == 1) {
                     result.append(" ").append(row).append(" ");
                 }
-                result.append(makeSquare(board, new ChessPosition(row,col), highlight && validMoves.contains(new ChessMove(highlightPosition, new ChessPosition(row,col), null))));
+                var currentPosition = new ChessPosition(row,col);
+                boolean highlightSquare = false;
+                if(highlight) {
+                    var onCurrentPosition = currentPosition.equals(highlightPosition);
+                    var validMove = validMoves.contains(new ChessMove(highlightPosition, currentPosition, null));
+                    if(onCurrentPosition || validMove) {
+                        highlightSquare = true;
+                    }
+                }
+                result.append(makeSquare(board, new ChessPosition(row,col), highlightSquare));
             }
             result.append(RESET_BG_COLOR + SET_TEXT_COLOR_WHITE);
             result.append(" ").append(row).append(" ").append("\n");
@@ -276,32 +261,6 @@ public class ChessClient implements NotificationHandler {
         }
     }
 
-    private String makeSquare(ChessBoard board, ChessPosition position) {
-        var piece = board.getPiece(position);
-        var row = position.getRow();
-        var col = position.getColumn();
-        StringBuilder result = new StringBuilder();
-        if((row + col) % 2 == 1) {
-            result.append(SET_BG_COLOR_LIGHT_GREY);
-        }
-        else {
-            result.append(SET_BG_COLOR_DARK_GREY);
-        }
-        if(piece != null) {
-            if(piece.getTeamColor() == ChessGame.TeamColor.BLACK) {
-                result.append(SET_TEXT_COLOR_BLACK);
-            }
-            else {
-                result.append(SET_TEXT_COLOR_WHITE);
-            }
-            result.append(visualizePiece(piece));
-        }
-        else {
-            result.append("   ");
-        }
-        return result.toString();
-    }
-
     private String makeSquare(ChessBoard board, ChessPosition position, boolean highlight) {
         var piece = board.getPiece(position);
         var row = position.getRow();
@@ -309,7 +268,7 @@ public class ChessClient implements NotificationHandler {
         StringBuilder result = new StringBuilder();
         if((row + col) % 2 == 1) {
             if(highlight) {
-                result.append(SET_BG_COLOR_YELLOW);
+                result.append(SET_BG_COLOR_RED);
             }
             else {
                 result.append(SET_BG_COLOR_LIGHT_GREY);
@@ -317,7 +276,7 @@ public class ChessClient implements NotificationHandler {
         }
         else {
             if(highlight) {
-                result.append(SET_BG_COLOR_GREEN);
+                result.append(SET_BG_COLOR_DARK_GREEN);
             }
             else {
                 result.append(SET_BG_COLOR_DARK_GREY);
@@ -367,7 +326,6 @@ public class ChessClient implements NotificationHandler {
     public String logout() throws ServiceException {
         server.logout(new AuthorizationRequest(authToken));
         state = State.LOGGEDOUT;
-        username = null;
         return "Logout successful";
     }
 
@@ -385,10 +343,11 @@ public class ChessClient implements NotificationHandler {
         }
         var startingLocation = stringToLocation(start);
         var endingLocation = stringToLocation(end);
-        ChessPiece.PieceType promotionPiece = null;
+        ChessPiece.PieceType promotionPiece;
         try {
             promotionPiece = ChessPiece.PieceType.valueOf(promotion);
-        } catch(Exception _) {
+        } catch (Exception ex) {
+            promotionPiece =  null;
         }
         var chessMove = new ChessMove(startingLocation, endingLocation, promotionPiece);
         ws.makeMove(authToken, currentGame, chessMove);
@@ -408,6 +367,9 @@ public class ChessClient implements NotificationHandler {
         }
         var games = server.list(new AuthorizationRequest(authToken));
         var game = findGame(games, currentGame);
+        if(game == null){
+            return "GAME BOARD IS NULL";
+        }
         ChessPosition highlightPosition = null;
         if(highlight) {
             highlightPosition = stringToLocation(highlightString);

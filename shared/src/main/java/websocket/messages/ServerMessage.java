@@ -11,8 +11,8 @@ import java.util.Objects;
 public class ServerMessage {
     ServerMessageType serverMessageType;
     String message;
-    String game;
     String errorMessage;
+    String game;
 
     public enum ServerMessageType {
         LOAD_GAME,
@@ -24,7 +24,8 @@ public class ServerMessage {
         this.serverMessageType = type;
         if(type == ServerMessageType.LOAD_GAME) {
             game = str;
-        } else if (type == ServerMessageType.ERROR) {
+        }
+        if (type == ServerMessageType.ERROR) {
             errorMessage = str;
         } else if (type == ServerMessageType.NOTIFICATION) {
             message = str;

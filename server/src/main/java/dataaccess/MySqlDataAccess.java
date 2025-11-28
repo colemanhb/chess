@@ -148,13 +148,17 @@ public class MySqlDataAccess implements DataAccess{
     public ArrayList<GameData> listGames() throws DataAccessException{
         var res = new ArrayList<GameData>();
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT gameJson FROM game";
+            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, gameJson FROM game";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 try (ResultSet rs = ps.executeQuery()) {
                     while(rs.next()) {
+                        int gameID = rs.getInt("gameID");
+                        String whiteUsername = rs.getString("whiteUsername");
+                        String blackUsername = rs.getString("blackUsername");
+                        String gameName = rs.getString("gameName");
                         String gameJson = rs.getString("gameJson");
-                        GameData game = new Gson().fromJson(gameJson, GameData.class);
-                        res.add(game);
+                        var game = new Gson().fromJson(gameJson, ChessGame.class);
+                        res.add(new GameData(gameID, whiteUsername, blackUsername, gameName, game));
                     }
                 }
             }

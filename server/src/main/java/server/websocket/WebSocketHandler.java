@@ -89,6 +89,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         var username = dataAccess.findAuth(authToken);
         GameData gameData = dataAccess.getGame(gameID);
+        if(gameData == null) {
+            var errorString = "Invalid game";
+            var errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorString);
+            session.getRemote().sendString(new Gson().toJson(errorMsg));
+            return;
+        }
         ChessGame.TeamColor color = null;
         if(Objects.equals(gameData.whiteUsername(), username)) {
             color = WHITE;
@@ -137,7 +143,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
         dataAccess.updateGame(newGameData);
 
-        var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, Integer.toString(gameData.gameID()));
+        var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, Integer.toString(gameID));
         connections.broadcast(null, new Gson().toJson(loadMsg), gameData.gameID());
 
         var notifString = String.format("%s moved from %s to %s", username, move.getStartPosition().toString(), move.getEndPosition().toString());
