@@ -1,9 +1,6 @@
 package chess;
-
 import java.util.*;
-
 import static java.lang.Math.abs;
-
 /**
  * For a class that can manage a chess game, making moves on a board
  * <p>
@@ -11,7 +8,6 @@ import static java.lang.Math.abs;
  * signature of the existing methods.
  */
 public class ChessGame {
-
     private static final ChessPosition WHITE_KING_POSITION = new ChessPosition(1, 5);
     private static final ChessPosition WHITE_QUEENSIDE_ROOK_POSITION = new ChessPosition(1, 1);
     private static final ChessPosition WHITE_KINGSIDE_ROOK_POSITION = new ChessPosition(1, 8);
@@ -171,7 +167,6 @@ public class ChessGame {
             return leftSide != null && leftSide.getPieceType() == ChessPiece.PieceType.PAWN && leftSide.getTeamColor() != color;
         }
     }
-
     private ChessMove castleMove(ChessPiece piece, ChessPosition startPosition, boolean queenSide) {
         var type = piece.getPieceType();
         if(type == ChessPiece.PieceType.KING || type == ChessPiece.PieceType.ROOK) {
@@ -193,7 +188,6 @@ public class ChessGame {
         }
         return null;
     }
-
     private boolean stagnant(ChessPosition pos) {
         if(pos == null) {return false;}
         var currentPiece = board.getPiece(pos);
@@ -205,7 +199,6 @@ public class ChessGame {
         }
         return true;
     }
-
     private boolean pathIsClear(ChessMove move) {
         var startPosition = move.getStartPosition();
         var endPosition = move.getEndPosition();
@@ -239,7 +232,6 @@ public class ChessGame {
         }
         return true;
     }
-
     private ChessMove identifyCastle(ChessPosition startPosition, boolean queenSide) {
         if(startPosition.equals(WHITE_KINGSIDE_ROOK_POSITION)) {
             return WHITE_KINGSIDE_ROOK_CASTLE;
@@ -263,7 +255,6 @@ public class ChessGame {
         }
         return null;
     }
-
     private ChessMove identifyOtherCastle(ChessMove move) {
         if(move.equals(WHITE_KINGSIDE_CASTLE)) {
             return WHITE_KINGSIDE_ROOK_CASTLE;
@@ -291,7 +282,6 @@ public class ChessGame {
         }
         return null;
     }
-
     private ChessPosition castlePairPosition(ChessPosition startPosition, boolean queenSide) {
         if(startPosition.equals(WHITE_KINGSIDE_ROOK_POSITION) || startPosition.equals(WHITE_QUEENSIDE_ROOK_POSITION)) {
             return WHITE_KING_POSITION;
@@ -313,7 +303,6 @@ public class ChessGame {
         }
         return null;
     }
-
     /**
      * Makes a move in a chess game
      *
@@ -362,7 +351,6 @@ public class ChessGame {
             gameOver = true;
         }
     }
-
     private boolean isEnPassant(ChessMove move, ChessPiece capturedPiece) {
         var startPos = move.getStartPosition();
         var endPos = move.getEndPosition();
@@ -370,7 +358,6 @@ public class ChessGame {
         var diagonal = (startPos.getRow() != endPos.getRow()) && (startPos.getColumn() != endPos.getColumn());
         return piece.getPieceType() == ChessPiece.PieceType.PAWN && diagonal && capturedPiece == null;
     }
-
     private ChessPosition enemyLocation(ChessPosition pos) {
         var row = pos.getRow();
         var col = pos.getColumn();
@@ -379,7 +366,6 @@ public class ChessGame {
         var rowIndex = (color == TeamColor.WHITE ? -1 : 1);
         return new ChessPosition(row + rowIndex,col);
     }
-
     /**
      * Determines if the given team is in check
      *

@@ -2,7 +2,6 @@ package server.websocket;
 
 import chess.ChessGame;
 import chess.ChessMove;
-import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
@@ -83,7 +82,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.broadcast(null, new Gson().toJson(notifMsg), gameData.gameID());
     }
 
-    private void makeMove(String authToken, Integer gameID, ChessMove move, Session session) throws IOException, DataAccessException, InvalidMoveException {
+    private void makeMove(String authToken, Integer gameID, ChessMove move, Session session) throws Exception {
         if(checkAuth(authToken, session)) {
             return;
         }
