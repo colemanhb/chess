@@ -230,6 +230,8 @@ public class ChessClient implements NotificationHandler {
                 col = j;
                 if(whiteSide) {
                     row = 9 - i;
+                } else {
+                    col = 9 - j;
                 }
                 if(j == 1) {
                     result.append(" ").append(row).append(" ");
@@ -335,6 +337,9 @@ public class ChessClient implements NotificationHandler {
     }
 
     public void makeMove(String... params) throws ServiceException {
+        if(params.length < 2) {
+            throw new ServiceException("Expected: <STARTING LOCATION> <ENDING LOCATION>", ServiceException.Code.BadRequestError);
+        }
         String start = params[0];
         String end = params[1];
         String promotion = null;
@@ -343,6 +348,9 @@ public class ChessClient implements NotificationHandler {
         }
         var startingLocation = stringToLocation(start);
         var endingLocation = stringToLocation(end);
+        if(startingLocation == null || endingLocation == null) {
+            throw new ServiceException("Please enter valid square (example: a1, h8", ServiceException.Code.BadRequestError);
+        }
         ChessPiece.PieceType promotionPiece;
         try {
             promotionPiece = ChessPiece.PieceType.valueOf(promotion);
