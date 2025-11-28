@@ -211,12 +211,10 @@ public class MySqlDataAccess implements DataAccess{
         var gameData = getGame(gameID);
         if(playerColor == ChessGame.TeamColor.BLACK) {
             statement = "UPDATE game SET blackUsername=?, gameJson=? WHERE gameID=?";
-            gameData = new GameData(gameID,gameData.whiteUsername(),username,gameData.gameName(),gameData.game());
         } else if (playerColor == ChessGame.TeamColor.WHITE) {
             statement = "UPDATE game SET whiteUsername=?, gameJson=? WHERE gameID=?";
-            gameData = new GameData(gameID,username,gameData.blackUsername(),gameData.gameName(),gameData.game());
         }
-        var gameJson = new Gson().toJson(gameData);
+        var gameJson = new Gson().toJson(gameData.game());
         executeUpdate(statement, username, gameJson, gameID);
     }
 
@@ -285,12 +283,10 @@ public class MySqlDataAccess implements DataAccess{
         var gameData = getGame(gameID);
         if(color == ChessGame.TeamColor.BLACK) {
             statement = "UPDATE game SET blackUsername=?, gameJson=? WHERE gameID=?";
-            gameData = new GameData(gameID,gameData.whiteUsername(),null,gameData.gameName(),gameData.game());
         } else if (color == ChessGame.TeamColor.WHITE) {
             statement = "UPDATE game SET whiteUsername=?, gameJson=? WHERE gameID=?";
-            gameData = new GameData(gameID,null,gameData.blackUsername(),gameData.gameName(),gameData.game());
         }
-        var gameJson = new Gson().toJson(gameData);
+        var gameJson = new Gson().toJson(gameData.game());
         executeUpdate(statement, null, gameJson, gameID);
     }
 

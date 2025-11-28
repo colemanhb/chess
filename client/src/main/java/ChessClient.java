@@ -194,11 +194,12 @@ public class ChessClient implements NotificationHandler {
     public String watch(String... params) throws ServiceException {
         if(params.length >= 1) {
             int gameID = Integer.parseInt(params[0]);
-            var gameList = server.watch(new JoinGameRequest(authToken, null, gameID));
+            server.watch(new JoinGameRequest(authToken, null, gameID));
             state = State.WATCHINGGAME;
             currentGame = gameID;
             teamColor = ChessGame.TeamColor.WHITE;
-            return makeGrid(findGame(gameList, gameID), true, null);
+            ws.join(authToken, gameID);
+            return "";
         }
         throw new ServiceException("Expected: <GAME ID>", ServiceException.Code.BadRequestError);
     }
@@ -212,13 +213,16 @@ public class ChessClient implements NotificationHandler {
         return null;
     }
 
-    private String makeGrid(ChessBoard board, boolean whiteSide, ChessPosition highlightPosition) {
+    private String makeGrid(ChessBoard board, boolean whiteSide, ChessPosition highlightPosition) throws ServiceException {
         var highlight = highlightPosition != null;
         ChessGame tempGame;
         Collection<ChessMove> validMoves = null;
         if(highlight) {
             tempGame = new ChessGame(board);
             validMoves = tempGame.validMoves(highlightPosition);
+            if(validMoves == null) {
+                throw new ServiceException("Please enter a square with a piece on it", ServiceException.Code.BadRequestError);
+            }
         }
         StringBuilder result = new StringBuilder();
         result.append(makeLetterLabels(whiteSide)).append("\n");
@@ -241,7 +245,8 @@ public class ChessClient implements NotificationHandler {
                 if(highlight) {
                     var onCurrentPosition = currentPosition.equals(highlightPosition);
                     var validMove = validMoves.contains(new ChessMove(highlightPosition, currentPosition, null));
-                    if(onCurrentPosition || validMove) {
+                    var validPromoteMove = validMoves.contains(new ChessMove(highlightPosition, currentPosition, ChessPiece.PieceType.QUEEN));
+                    if(onCurrentPosition || validMove || validPromoteMove) {
                         highlightSquare = true;
                     }
                 }
@@ -353,7 +358,8 @@ public class ChessClient implements NotificationHandler {
         }
         ChessPiece.PieceType promotionPiece;
         try {
-            promotionPiece = ChessPiece.PieceType.valueOf(promotion);
+            assert promotion != null;
+            promotionPiece = ChessPiece.PieceType.valueOf(promotion.toUpperCase());
         } catch (Exception ex) {
             promotionPiece =  null;
         }

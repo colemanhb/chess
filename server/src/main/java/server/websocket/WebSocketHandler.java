@@ -191,7 +191,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         if(checkAuth(authToken, session)) {
             return;
         }
-        var notifString = String.format("%s joined game %d", username, gameID);
+        var gameData = dataAccess.getGame(gameID);
+        String notifString;
+        if(Objects.equals(gameData.blackUsername(), username)) {
+            notifString = String.format("%s joined game %d as black player", username, gameID);
+        } else if(Objects.equals(gameData.whiteUsername(), username)) {
+            notifString = String.format("%s joined game %d as white player", username, gameID);
+        } else {
+            notifString = String.format("%s started watching game %d", username, gameID);
+        }
         var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
         connections.broadcast(session, new Gson().toJson(notifMsg), gameID);
         var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, Integer.toString(gameID));

@@ -45,13 +45,13 @@ public class ServerFacade {
         return handleResponse(response, CreateGameResult.class);
     }
 
-    public ListGamesResult join(JoinGameRequest joinGameRequest) throws ServiceException {
+    public void join(JoinGameRequest joinGameRequest) throws ServiceException {
         var request = buildRequest("PUT", "/game", joinGameRequest, joinGameRequest.authToken());
         var response = sendRequest(request);
         if (response.statusCode() == 403) {
             throw new ServiceException("Color already taken", ServiceException.Code.BadRequestError);
         }
-        return list(new AuthorizationRequest(joinGameRequest.authToken()));
+        list(new AuthorizationRequest(joinGameRequest.authToken()));
     }
 
     public ListGamesResult watch(JoinGameRequest watchGameRequest) throws ServiceException {
