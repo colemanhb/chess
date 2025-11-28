@@ -368,7 +368,12 @@ public class ChessClient implements NotificationHandler {
     }
 
     public void resign() throws ServiceException {
-        ws.resign(authToken, currentGame);
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Are you sure you want to resign? Type yes if so, or type anything else if you would like to keep playing");
+        String response = scanner.nextLine();
+        if(response.replace(" ", "").equalsIgnoreCase("yes")) {
+            ws.resign(authToken, currentGame);
+        }
     }
 
     private String redraw(boolean highlight, String... params) throws ServiceException {

@@ -149,6 +149,27 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         var notifString = String.format("%s moved from %s to %s", username, move.getStartPosition().toString(), move.getEndPosition().toString());
         var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
         connections.broadcast(session, new Gson().toJson(notifMsg), gameData.gameID());
+
+        var checkString = "";
+
+        if(game.isInCheckmate(BLACK)) {
+            checkString = String.format("%s (black team) is in checkmate", gameData.blackUsername());
+        } else if(game.isInCheckmate(WHITE)) {
+            checkString = String.format("%s (white team) is in checkmate", gameData.whiteUsername());
+        } else if(game.isInCheck(BLACK)) {
+            checkString = String.format("%s (black team) is in check", gameData.blackUsername());
+        } else if(game.isInCheck(WHITE)) {
+            checkString = String.format("%s (white team) is in check", gameData.whiteUsername());
+        } else if(game.isInStalemate(BLACK)) {
+            checkString = String.format("%s (black team) is in stalemate", gameData.blackUsername());
+        } else if(game.isInStalemate(WHITE)) {
+            checkString = String.format("%s (white team) is in stalemate", gameData.whiteUsername());
+        }
+        if(!checkString.isEmpty()) {
+            var checkMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, checkString);
+            connections.broadcast(session, new Gson().toJson(checkMsg), gameData.gameID());
+        }
+
     }
 
     private void leave(String authToken, Integer gameID, Session session) throws DataAccessException, IOException {
