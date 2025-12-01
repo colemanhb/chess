@@ -347,7 +347,10 @@ public class ChessGame {
         } else if(currentTeam == TeamColor.WHITE) {
             currentTeam = TeamColor.BLACK;
         }
-        if(isInCheck(TeamColor.WHITE) || isInCheck(TeamColor.BLACK)) {
+        if(isInCheckmate(TeamColor.WHITE) || isInCheckmate(TeamColor.BLACK)) {
+            gameOver = true;
+        }
+        if(isInStalemate(TeamColor.WHITE) || isInStalemate(TeamColor.BLACK)) {
             gameOver = true;
         }
     }

@@ -354,7 +354,7 @@ public class ChessClient implements NotificationHandler {
         var startingLocation = stringToLocation(start);
         var endingLocation = stringToLocation(end);
         if(startingLocation == null || endingLocation == null) {
-            throw new ServiceException("Please enter valid square (example: a1, h8", ServiceException.Code.BadRequestError);
+            throw new ServiceException("Please enter valid square (example: a1, h8)", ServiceException.Code.BadRequestError);
         }
         ChessPiece.PieceType promotionPiece;
         try {
@@ -398,6 +398,9 @@ public class ChessClient implements NotificationHandler {
 
     private ChessPosition stringToLocation(String str) {
         str = str.toLowerCase();
+        if (str.length() != 2) {
+            return null;
+        }
         var letter = str.charAt(0);
         var number = str.charAt(1);
         if(!Character.isLetter(letter) || !Character.isDigit(number)) {

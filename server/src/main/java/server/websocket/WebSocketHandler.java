@@ -161,7 +161,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             notifString += String.format("\n%s (white team) is in stalemate", gameData.whiteUsername());
         }
         var notifMsg = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notifString);
-        connections.broadcast(session, new Gson().toJson(notifMsg), gameData.gameID());
+        if(notifString.contains("is in")) {
+            connections.broadcast(null, new Gson().toJson(notifMsg), gameData.gameID());
+        }
+        else {
+            connections.broadcast(session, new Gson().toJson(notifMsg), gameData.gameID());
+        }
+
 
     }
 
